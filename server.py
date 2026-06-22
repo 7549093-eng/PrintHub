@@ -136,6 +136,16 @@ def init_db():
               key TEXT PRIMARY KEY,
               value TEXT NOT NULL DEFAULT ''
             );
+            CREATE TABLE IF NOT EXISTS page_views (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              page TEXT NOT NULL DEFAULT '/',
+              referrer TEXT DEFAULT '',
+              user_agent TEXT DEFAULT '',
+              ip_hash TEXT DEFAULT '',
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_page_views_date ON page_views(created_at);
+            CREATE INDEX IF NOT EXISTS idx_page_views_page ON page_views(page);
             """
         )
         # Migrate model images from emoji to SVG
@@ -449,8 +459,13 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
             if not require_admin(self):
                 return
             return self.handle_get_settings()
-        if parsed.path.startswith("/admin/") and parsed.path != "/admin/index.html":
-            if not current_admin(self):
+        if parsed.path == "/api/admin/analytics":
+            if not require_admin(self):
+                return
+            return self.handle_admin_analytics()
+        # Only protect admin HTML pages, allow static files
+        if parsed.path.startswith("/admin/") and parsed.path.endswith((".html",)):
+            if parsed.path != "/admin/index.html" and not current_admin(self):
                 self.send_response(302)
                 self.send_header("Location", "/admin/index.html")
                 self.end_headers()
@@ -494,6 +509,8 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
             if not require_admin(self):
                 return
             return self.handle_save_settings()
+        if parsed.path == "/api/track":
+            return self.handle_track_view()
         return json_response(self, {"ok": False, "error": "接口不存在"}, 404)
 
     def handle_login(self):
@@ -974,6 +991,71 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
                         (key, value)
                     )
         return json_response(self, {"ok": True})
+
+    # ============ TRACKING & ANALYTICS ============
+
+    def handle_track_view(self):
+        payload = read_json(self)
+        if payload is None:
+            return json_response(self, {"ok": True})  # Silent ignore
+        page = str(payload.get("page", "/"))[:256]
+        referrer = str(payload.get("referrer", ""))[:512]
+        ua = self.headers.get("User-Agent", "")[:512]
+        ip = self.client_address[0]
+        ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16]
+        with db() as conn:
+            conn.execute(
+                "INSERT INTO page_views (page, referrer, user_agent, ip_hash) VALUES (?, ?, ?, ?)",
+                (page, referrer, ua, ip_hash)
+            )
+        return json_response(self, {"ok": True})
+
+    def handle_admin_analytics(self):
+        q = self._parse_query()
+        days = int(q.get("days", ["7"])[0] or 7)
+        import datetime
+        today = datetime.date.today()
+        with db() as conn:
+            # Total views
+            total = conn.execute("SELECT COUNT(*) AS n FROM page_views").fetchone()["n"]
+            today_count = conn.execute(
+                "SELECT COUNT(*) AS n FROM page_views WHERE date(created_at) = ?",
+                (today.isoformat(),)
+            ).fetchone()["n"]
+            # Daily views for chart
+            daily = []
+            for i in range(days - 1, -1, -1):
+                d = today - datetime.timedelta(days=i)
+                cnt = conn.execute(
+                    "SELECT COUNT(*) AS n FROM page_views WHERE date(created_at) = ?",
+                    (d.isoformat(),)
+                ).fetchone()["n"]
+                daily.append({"date": d.isoformat(), "views": cnt})
+            # Top pages
+            pages = [dict(r) for r in conn.execute(
+                "SELECT page, COUNT(*) AS n FROM page_views GROUP BY page ORDER BY n DESC LIMIT 10"
+            ).fetchall()]
+            # Hourly today
+            hourly = []
+            for h in range(24):
+                cnt = conn.execute(
+                    "SELECT COUNT(*) AS n FROM page_views WHERE date(created_at) = ? AND strftime('%H', created_at) = ?",
+                    (today.isoformat(), f"{h:02d}")
+                ).fetchone()["n"]
+                hourly.append({"hour": h, "views": cnt})
+            # Top referrers
+            referrers = [dict(r) for r in conn.execute(
+                "SELECT referrer, COUNT(*) AS n FROM page_views WHERE referrer != '' GROUP BY referrer ORDER BY n DESC LIMIT 5"
+            ).fetchall()]
+        return json_response(self, {
+            "ok": True,
+            "total_views": total,
+            "today_views": today_count,
+            "daily": daily,
+            "top_pages": pages,
+            "hourly": hourly,
+            "referrers": referrers,
+        })
 
 
 if __name__ == "__main__":

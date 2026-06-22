@@ -584,6 +584,17 @@ PrintHub.User = {
   }
 };
 
+// Page view tracking
+(function() {
+  try {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({page: location.pathname, referrer: document.referrer}),
+    }).catch(function(){});
+  } catch(e) {}
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   try { Theme.init(); } catch(e) { console.warn('Theme init error:', e); }
   try { I18n.init(); } catch(e) { console.warn('I18n init error:', e); }

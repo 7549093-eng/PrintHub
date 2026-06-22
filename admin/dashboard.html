@@ -57,12 +57,13 @@
 <script>
 const API = {
     async fetch(url) { const r = await fetch(url, {credentials:'same-origin'}); return r.json(); },
-    async stats() { return this.fetch('/api/admin/stats'); }
+    async stats() { return this.fetch('/api/admin/stats'); },
+    async analytics() { return this.fetch('/api/admin/analytics'); }
 };
 
 async function loadDashboard() {
     try {
-        const d = await API.stats();
+        const [d, a] = await Promise.all([API.stats(), API.analytics().catch(() => ({}))]);
         if (!d.ok) { if (d.error) alert(d.error); return; }
         // Stats cards
         const stats = [
@@ -71,7 +72,9 @@ async function loadDashboard() {
             {label:'用户总数',value:d.user_count,color:'var(--purple)'},
             {label:'订单总数',value:d.order_count,color:'var(--gold)'},
             {label:'总下载量',value:d.total_downloads,color:'var(--green)'},
-            {label:'总营收',value:'¥'+Number(d.total_revenue||0).toLocaleString(),color:'var(--gold)'},
+            {label:'总浏览量',value:a.total_views||0,color:'var(--purple)'},
+            {label:'今日浏览',value:a.today_views||0,color:'var(--gold)'},
+            {label:'今日订单',value:d.daily?.[d.daily.length-1]?.orders||0,color:'var(--green)'},
         ];
         document.getElementById('stats-grid').innerHTML = stats.map(s =>
             `<div class="admin-stat-card"><div class="label">${s.label}</div><div class="value" style="color:${s.color}">${s.value}</div></div>`
@@ -97,6 +100,23 @@ async function loadDashboard() {
         document.getElementById('recent-orders').innerHTML = orders.map(o =>
             `<tr><td>#${o.id}</td><td>${o.username||'-'}</td><td>${o.model_title||'模型#'+o.model_id}</td><td>¥${o.amount}</td><td><span class="status-${o.status}">${o.status==='completed'?'已完成':o.status==='processing'?'处理中':o.status}</span></td><td>${(o.created_at||'').slice(0,16)}</td></tr>`
         ).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">暂无订单</td></tr>';
+
+        // Hourly traffic chart
+        const hourly = a.hourly || [];
+        const maxH = Math.max(1, ...hourly.map(x=>x.views));
+        document.getElementById('daily-chart').insertAdjacentHTML('afterend',
+            '<div class="admin-chart-row"><div class="admin-chart-card"><h3>🕐 今日各时段访问量</h3><div id="hourly-chart" style="display:flex;align-items:flex-end;gap:3px;height:120px;padding:10px 0;"></div></div>'+
+            '<div class="admin-chart-card"><h3>📄 热门页面 TOP 10</h3><table class="admin-table" style="margin-top:10px;"><thead><tr><th>页面</th><th>访问量</th></tr></thead><tbody id="top-pages"></tbody></table></div></div>'
+        );
+        document.getElementById('hourly-chart').innerHTML = hourly.map(h => {
+            const barH = Math.max(2, (h.views/maxH*100));
+            return `<div style="flex:1;text-align:center;" title="${h.hour}时: ${h.views}次"><div style="background:linear-gradient(180deg,var(--purple),var(--green-dim));height:${barH}px;border-radius:3px 3px 0 0;min-width:2px;"></div><small style="font-size:0.5rem;color:var(--text-muted);">${h.hour}h</small></div>`;
+        }).join('');
+
+        const pages = a.top_pages || [];
+        document.getElementById('top-pages').innerHTML = pages.map(p =>
+            `<tr><td>${p.page}</td><td><strong>${p.n}</strong></td></tr>`
+        ).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text-muted);">暂无数据</td></tr>';
 
         document.getElementById('current-date').textContent = new Date().toISOString().slice(0,10);
     } catch(e) { console.error(e); }
