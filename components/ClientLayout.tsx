@@ -3,6 +3,8 @@
 import { type ReactNode, useState, useEffect, useRef } from "react";
 import { useStore } from "@/contexts/StoreContext";
 import { t, text, money } from "@/lib/data";
+import { useAuth } from "@/contexts/AuthContext";
+import { createOrder } from "@/lib/queries";
 import type { Lang } from "@/types";
 import Link from "next/link";
 
@@ -176,12 +178,26 @@ function Topbar() {
 
 // ─── Cart Drawer ─────────────────────────────────────────────────
 function CartDrawer() {
-  const { lang, cart, cartOpen, setCartOpen, removeFromCart, cartTotal } = useStore();
+  const { lang, cart, cartOpen, setCartOpen, removeFromCart, cartTotal, clearCart } = useStore();
+  const { user } = useAuth();
   const [msg, setMsg] = useState("");
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) {
       setMsg(t("checkoutEmpty", lang));
+      return;
+    }
+    if (!user) {
+      setMsg("请先登录再结账。点击右上角登录按钮。");
+      return;
+    }
+    const orderId = await createOrder(
+      user.id, cartTotal,
+      cart.map((item) => ({ price: item.price }))
+    );
+    if (orderId) {
+      setMsg(`订单已创建 #${orderId.slice(0, 8)}。支付功能即将上线。`);
+      clearCart();
     } else {
       setMsg(t("checkoutSuccess", lang));
     }

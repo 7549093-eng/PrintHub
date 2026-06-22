@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
-import { defaultProducts, defaultBundles, ui } from "@/lib/data";
-import type { Lang } from "@/types";
+import { defaultProducts, defaultBundles } from "@/lib/data";
+import { fetchProducts, fetchBundles, saveProduct, saveBundle, deleteProduct } from "@/lib/queries";
+import { useAuth } from "@/contexts/AuthContext";
+import type { Lang, Product, Bundle } from "@/types";
 
 const STORAGE_KEY = "printhub-content-v1";
 const LANGS: Lang[] = ["zh", "en", "ja", "ko"];
@@ -72,7 +74,71 @@ function showToast(msg: string) {
 export default function AdminPage() {
   const [content, setContent] = useState<Content>(() => loadContent());
   const [activeLang, setActiveLang] = useState<Lang>("zh");
+  const [syncMsg, setSyncMsg] = useState("");
   const importRef = useRef<HTMLInputElement>(null);
+  const { isAdmin } = useAuth();
+
+  // Pull products & bundles from Supabase → merge into localStorage
+  const pullFromSupabase = useCallback(async () => {
+    setSyncMsg("正在从 Supabase 拉取...");
+    try {
+      const [prods, buns] = await Promise.all([fetchProducts(), fetchBundles()]);
+      if (prods.length === 0 && buns.length === 0) {
+        setSyncMsg("Supabase 中没有数据。请先执行种子 SQL。");
+        return;
+      }
+      // Convert to storage format
+      const rawProducts = prods.map((p) => ({
+        code: p.code, category: p.category, price: p.price, image: p.image,
+        title: p.title, meta: p.meta, stats: p.stats,
+        tag: p.tag, formats: p.formats, difficulty: p.difficulty,
+      }));
+      const rawBundles = buns.map((b) => ({
+        price: b.price, image: b.image, title: b.title, description: b.description,
+      }));
+      const merged = { ...loadContent(), products: rawProducts, bundles: rawBundles };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      setContent(merged);
+      setSyncMsg(`已加载 ${rawProducts.length} 个产品, ${rawBundles.length} 个套装。`);
+      setTimeout(() => setSyncMsg(""), 3000);
+    } catch {
+      setSyncMsg("拉取失败。请检查 Supabase 配置。");
+    }
+  }, []);
+
+  // Push current content to Supabase
+  const pushToSupabase = useCallback(async () => {
+    if (!isAdmin) { setSyncMsg("需要管理员权限。请用管理员账号登录。"); return; }
+    setSyncMsg("正在同步到 Supabase...");
+    try {
+      let ok = 0; let fail = 0;
+      for (const p of content.products) {
+        const product = {
+          code: p.code as string, category: (p.category || "desk") as Product["category"],
+          price: Number(p.price || 0), image: (p.image as string) || "",
+          title: (p.title || { zh: "", en: "", ja: "", ko: "" }) as Record<Lang, string>,
+          meta: (p.meta || { zh: "", en: "", ja: "", ko: "" }) as Record<Lang, string>,
+          stats: (p.stats || { zh: "", en: "", ja: "", ko: "" }) as Record<Lang, string>,
+          tag: (p.tag as string) || "STL",
+          formats: (p.formats as string[]) || ["stl", "3mf"],
+          difficulty: ((p.difficulty as "easy" | "medium") || "easy"),
+        };
+        (await saveProduct(product)) ? ok++ : fail++;
+      }
+      for (const b of content.bundles) {
+        const bundle = {
+          price: Number(b.price || 0), image: (b.image as string) || "",
+          title: (b.title || { zh: "", en: "", ja: "", ko: "" }) as Record<Lang, string>,
+          description: (b.description || { zh: "", en: "", ja: "", ko: "" }) as Record<Lang, string>,
+        };
+        (await saveBundle(bundle)) ? ok++ : fail++;
+      }
+      setSyncMsg(`同步完成: ${ok} 成功${fail > 0 ? `, ${fail} 失败` : ""}。`);
+      setTimeout(() => setSyncMsg(""), 4000);
+    } catch {
+      setSyncMsg("同步失败。请检查 Supabase 配置。");
+    }
+  }, [content, isAdmin]);
 
   const save = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -225,10 +291,17 @@ export default function AdminPage() {
             <p className="eyebrow">Content Manager</p>
             <h1>网站内容后台</h1>
           </div>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
             <Link className="btn btn-secondary btn-compact" href="/">打开网站</Link>
-            <button className="btn btn-primary btn-compact" onClick={save}>保存修改</button>
+            <button className="btn btn-primary btn-compact" onClick={save}>保存</button>
+            <button className="btn btn-secondary btn-compact" onClick={pullFromSupabase} title="从 Supabase 加载数据">📥 拉取</button>
+            <button className="btn btn-secondary btn-compact" onClick={pushToSupabase} title="同步到 Supabase" style={!isAdmin ? { opacity: 0.5 } : {}}>📤 同步</button>
           </div>
+          {syncMsg && (
+            <div style={{ marginTop: "8px", padding: "8px 12px", borderRadius: "8px", background: "var(--color-accent-glow)", color: "var(--color-accent)", fontSize: "13px" }}>
+              {syncMsg}
+            </div>
+          )}
         </header>
 
         {/* Basic Content */}

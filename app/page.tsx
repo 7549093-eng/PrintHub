@@ -3,14 +3,16 @@
 import { useMemo, useState } from "react";
 import { useStore } from "@/contexts/StoreContext";
 import { defaultProducts, defaultBundles, policyCopy, t, text, money, format } from "@/lib/data";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { submitLead, submitServiceRequest } from "@/lib/queries";
 import type { Product, Bundle, Category, PolicyKey } from "@/types";
 
 // ─── Helpers ─────────────────────────────────────────────────────
-function useFilteredProducts(): Product[] {
+function useFilteredProducts(products: Product[]): Product[] {
   const { category, priceFilter, formatFilter, difficultyFilter, sort, search } = useStore();
   return useMemo(() => {
     const q = search.trim().toLowerCase();
-    let visible = defaultProducts.filter((p) => {
+    let visible = products.filter((p) => {
       if (category !== "all" && p.category !== category) return false;
       if (priceFilter === "free" && p.price !== 0) return false;
       if (priceFilter === "paid" && p.price === 0) return false;
@@ -89,10 +91,11 @@ function FreeSection() {
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const success = await submitLead(email);
     setMsg(format(t("leadSuccess", lang), { email }));
-    setEmail("");
+    if (success) setEmail("");
   };
 
   return (
@@ -152,13 +155,13 @@ function CategoriesSection() {
   );
 }
 
-function CatalogSection() {
+function CatalogSection({ products }: { products: Product[] }) {
   const {
     lang, category, setCategory, priceFilter, setPriceFilter,
     formatFilter, setFormatFilter, difficultyFilter, setDifficultyFilter,
     sort, setSort, addToCart, setCartOpen,
   } = useStore();
-  const visible = useFilteredProducts();
+  const visible = useFilteredProducts(products);
 
   const catFilters: { key: Category; label: string }[] = [
     { key: "all", label: t("filterAll", lang) },
@@ -321,7 +324,7 @@ function AccountSection() {
   );
 }
 
-function BundlesSection() {
+function BundlesSection({ bundles }: { bundles: Bundle[] }) {
   const { lang, addToCart, setCartOpen } = useStore();
   const handleAdd = (b: Bundle) => {
     addToCart({ title: b.title, price: b.price, image: b.image, description: b.description });
@@ -332,7 +335,7 @@ function BundlesSection() {
       <span className="eyebrow">{t("bundleEyebrow", lang)}</span>
       <h2>{t("bundleTitle", lang)}</h2>
       <div className="grid-3">
-        {defaultBundles.map((b, i) => (
+        {bundles.map((b, i) => (
           <article key={i} className="bundle-card">
             <img src={b.image} alt={text(b.title, lang)} />
             <div className="bundle-body">
@@ -406,9 +409,20 @@ function OperationsSection() {
 function ServicesSection() {
   const { lang } = useStore();
   const [msg, setMsg] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [reqType, setReqType] = useState("custom");
+  const [budget, setBudget] = useState("unsure");
+  const [details, setDetails] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await submitServiceRequest({
+      name, email,
+      request_type: reqType,
+      budget: budget === "unsure" ? undefined : budget,
+      project_details: details,
+    });
     setMsg(t("serviceSuccess", lang));
   };
 
@@ -419,33 +433,33 @@ function ServicesSection() {
       <form className="form-grid" style={{ maxWidth: "640px" }} onSubmit={handleSubmit}>
         <label>
           {t("nameLabel", lang)}
-          <input type="text" required placeholder={t("namePlaceholder", lang)} />
+          <input type="text" required placeholder={t("namePlaceholder", lang)} value={name} onChange={(e) => setName(e.target.value)} />
         </label>
         <label>
           {t("emailLabel", lang)}
-          <input type="email" required placeholder="email@example.com" />
+          <input type="email" required placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label>
           {t("requestType", lang)}
-          <select defaultValue="">
-            <option value="">{t("requestCustom", lang)}</option>
-            <option value="">{t("requestModify", lang)}</option>
-            <option value="">{t("requestPrint", lang)}</option>
-            <option value="">{t("requestLicense", lang)}</option>
+          <select value={reqType} onChange={(e) => setReqType(e.target.value)}>
+            <option value="custom">{t("requestCustom", lang)}</option>
+            <option value="modify">{t("requestModify", lang)}</option>
+            <option value="print">{t("requestPrint", lang)}</option>
+            <option value="license">{t("requestLicense", lang)}</option>
           </select>
         </label>
         <label>
           {t("budgetLabel", lang)}
-          <select defaultValue="">
-            <option value="">{t("budgetUnsure", lang)}</option>
-            <option value="">$10–$50</option>
-            <option value="">$50–$200</option>
-            <option value="">$200+</option>
+          <select value={budget} onChange={(e) => setBudget(e.target.value)}>
+            <option value="unsure">{t("budgetUnsure", lang)}</option>
+            <option value="10-50">$10–$50</option>
+            <option value="50-200">$50–$200</option>
+            <option value="200+">$200+</option>
           </select>
         </label>
         <label style={{ gridColumn: "1 / -1" }}>
           {t("projectDetails", lang)}
-          <textarea placeholder={t("projectPlaceholder", lang)} />
+          <textarea placeholder={t("projectPlaceholder", lang)} value={details} onChange={(e) => setDetails(e.target.value)} />
         </label>
         <div style={{ gridColumn: "1 / -1" }}>
           <button className="btn btn-primary" type="submit">{t("quoteButton", lang)}</button>
@@ -489,17 +503,37 @@ function PoliciesSection() {
 // Main Page
 // ═══════════════════════════════════════════════════════════════════
 export default function HomePage() {
+  const { products, bundles, loading, error } = useSupabaseData();
+
   return (
     <main>
+      {loading && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          padding: "4px 16px", background: "var(--color-accent)", color: "var(--color-ink)",
+          fontSize: "13px", textAlign: "center", fontWeight: 600,
+        }}>
+          正在加载模型数据...
+        </div>
+      )}
+      {error && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+          padding: "4px 16px", background: "#f43f5e", color: "#fff",
+          fontSize: "13px", textAlign: "center",
+        }}>
+          {error}
+        </div>
+      )}
       <HeroSection />
       <MetricsBar />
       <FreeSection />
       <CategoriesSection />
-      <CatalogSection />
+      <CatalogSection products={products} />
       <DetailsSection />
       <MembershipsSection />
       <AccountSection />
-      <BundlesSection />
+      <BundlesSection bundles={bundles} />
       <LicenseSection />
       <OperationsSection />
       <ServicesSection />
