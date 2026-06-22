@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>搜索 - PrintHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.search-layout { display: flex; min-height: 100vh; padding-top: 100px; padding-right: 48px; padding-left: 108px; }
+.search-sidebar { width: 260px; flex-shrink: 0; padding-right: 24px; }
+.search-results { flex: 1; }
+.filter-group { margin-bottom: 18px; }
+.filter-title { font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; color: var(--text); font-family: 'Noto Sans SC',sans-serif; }
+.filter-options { display: flex; flex-direction: column; gap: 4px; }
+.filter-option { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; font-size: 0.78rem; color: var(--text-secondary); font-family: 'Noto Sans SC',sans-serif; }
+.filter-option input { width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; }
+.price-range { display: flex; gap: 6px; align-items: center; }
+.price-range input { width: 70px; height: 34px; padding: 0 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.8rem; outline: none; }
+.price-range input:focus { border-color: var(--green); }
+.filter-btn { width: 100%; padding: 10px; background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; margin-top: 8px; }
+.reset-btn { width: 100%; padding: 10px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; font-weight: 600; font-size: 0.82rem; cursor: pointer; margin-top: 6px; }
+.results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+.results-count { font-size: 0.85rem; color: var(--text-secondary); font-family: 'Noto Sans SC',sans-serif; }
+.results-count b { color: var(--green); font-weight: 700; }
+.sort-bar select { padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.82rem; outline: none; cursor: pointer; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 36px; flex-wrap: wrap; }
+.pagination a { padding: 8px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); font-size: 0.82rem; cursor: pointer; text-decoration: none; }
+.pagination a.on { border-color: var(--green); color: var(--green); font-weight: 700; }
+.pagination a.off { opacity: 0.3; pointer-events: none; }
+
+/* Model cards */
+.model-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.model-card { display: block; text-decoration: none; color: inherit; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
+.model-card:hover { border-color: var(--green); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+.model-card .img-wrap { aspect-ratio: 4/3; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; }
+.model-card .info { padding: 14px; }
+.model-card .title { font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; font-family: 'Noto Sans SC',sans-serif; }
+.model-card .meta { display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; }
+.model-card .meta .stars { color: var(--gold); }
+.model-card .bottom { display: flex; align-items: center; justify-content: space-between; }
+.model-card .author { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-muted); }
+.model-card .author-avatar { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg,var(--green),var(--green-dim)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); font-size: 0.6rem; }
+.model-card .price { font-weight: 800; font-size: 0.95rem; color: var(--green); }
+.model-card .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 700; display: inline-block; }
+.badge-free { background: var(--green); color: var(--bg); }
+.badge-new { background: var(--gold); color: var(--bg); }
+.badge-vip { background: #7c3aed; color: #fff; }
+.model-card .badges { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 2; }
+.model-card .format-tag { position: absolute; top: 8px; right: 8px; padding: 2px 8px; background: rgba(0,0,0,0.65); color: #fff; border-radius: 4px; font-size: 0.6rem; font-weight: 700; z-index: 2; }
+.loading-text { grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted); }
+@media (max-width: 1024px) { .search-sidebar { display: none; } .search-layout { padding-right: 24px; padding-left: 88px; } .model-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .left-nav { display: none; } .top-bar { left: 0; } .search-layout { padding-left: 16px; padding-top: 92px; } .model-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav class="left-nav">
+<a href="index.html" class="left-nav-top"><img class="site-logo-icon" src="assets/logo.png" alt="PrintHub"></a>
+<a href="index.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="label">首页</span></a>
+<a href="home.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="label">市场</span></a>
+<a href="search.html" class="left-nav-item active"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><span class="label">搜索</span></a>
+<a href="user.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><span class="label">上传</span></a>
+<a href="user.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="label">用户</span></a>
+</nav>
+
+<div class="top-bar">
+    <div class="top-bar-search-wrap">
+        <a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a>
+        <input type="text" class="top-bar-search" id="kw" placeholder="搜索模型、创作者、标签...">
+        <button class="top-bar-search-btn" id="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+    </div>
+    <a href="login.html" class="top-bar-user">登</a>
+</div>
+
+<main class="search-layout">
+<aside class="search-sidebar">
+    <div class="filter-group">
+        <div class="filter-title">💰 价格</div>
+        <div class="price-range"><input type="number" id="pmin" placeholder="¥0"><span>-</span><input type="number" id="pmax" placeholder="¥999"></div>
+    </div>
+    <div class="filter-group">
+        <div class="filter-title">📁 分类</div>
+        <div class="filter-options" id="cat-filters"></div>
+    </div>
+    <div class="filter-group">
+        <div class="filter-title">💾 格式</div>
+        <div class="filter-options" id="fmt-filters"></div>
+    </div>
+    <button class="filter-btn" id="apply">应用筛选</button>
+    <button class="reset-btn" id="reset">重置</button>
+</aside>
+
+<div class="search-results">
+    <div class="results-header">
+        <div class="results-count">共找到 <b id="cnt">0</b> 个模型</div>
+        <div class="sort-bar">
+            <select id="sortby">
+                <option value="hot">热门排序</option>
+                <option value="newest">最新上传</option>
+                <option value="downloads">下载量</option>
+                <option value="price_asc">价格从低到高</option>
+                <option value="price_desc">价格从高到低</option>
+                <option value="rating">评分最高</option>
+            </select>
+        </div>
+    </div>
+    <div class="model-grid" id="grid"><div class="loading-text">加载中...</div></div>
+    <div class="pagination" id="pages"></div>
+</div>
+</main>
+
+<script>
+(function() {
+  var pg = 1, sort = 'hot', psize = 12;
+  var cats = ['玩具','家居','工具','机械','摆件','电子','DIY','节日'];
+  var fmts = ['STL','OBJ','3MF'];
+
+  // Render filter checkboxes
+  var catHtml = '';
+  cats.forEach(function(c) { catHtml += '<label class="filter-option"><input type="checkbox" value="'+c+'"><span>'+c+'</span></label>'; });
+  document.getElementById('cat-filters').innerHTML = catHtml;
+
+  var fmtHtml = '';
+  fmts.forEach(function(f) { fmtHtml += '<label class="filter-option"><input type="checkbox" value="'+f+'"><span>'+f+'</span></label>'; });
+  document.getElementById('fmt-filters').innerHTML = fmtHtml;
+
+  // Helper functions
+  function fmoney(v) { v = Number(v||0); return v<=0 ? '免费' : '¥'+(v%1===0? v : v.toFixed(2)); }
+  function stars(r) { r = Math.round(Number(r||4.5)); var s=''; for(var i=0;i<5;i++) s+= i<r ? '★' : '☆'; return s; }
+
+  function thumb(m) {
+    if (m.image && (m.image.indexOf('assets/')===0 || m.image.indexOf('data/')===0)) {
+      return '<img src="'+m.image+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+    }
+    return '<div style="font-size:3rem;">'+(m.image||'📦')+'</div>';
+  }
+  function card(m) {
+    var p = Number(m.price||0), free = p<=0;
+    var tags = (m.tags||'').split(',').map(function(t){return t.trim();});
+    var isNew = tags.indexOf('新品')>=0, isVIP = tags.indexOf('VIP')>=0 || m.license_type==='commercial';
+    var badges = '';
+    if (free) badges += '<span class="badge badge-free">免费</span>';
+    if (isNew) badges += '<span class="badge badge-new">新品</span>';
+    if (isVIP) badges += '<span class="badge badge-vip">VIP</span>';
+
+    return '<a href="model.html?id='+m.id+'" class="model-card">'+
+      '<div class="img-wrap">'+thumb(m)+
+        (badges ? '<div class="badges">'+badges+'</div>' : '')+
+        '<span class="format-tag">'+(m.file_format||'STL')+'</span>'+
+      '</div>'+
+      '<div class="info">'+
+        '<div class="title">'+m.title+'</div>'+
+        '<div class="meta"><span class="stars">'+stars(m.rating)+' '+Number(m.rating||4.5).toFixed(1)+'</span><span>⬇ '+Number(m.downloads||0).toLocaleString()+'</span></div>'+
+        '<div class="bottom">'+
+          '<div class="author"><div class="author-avatar">'+(m.author||'?')[0]+'</div><span>'+m.author+'</span></div>'+
+          '<div class="price">'+fmoney(p)+'</div>'+
+        '</div>'+
+      '</div></a>';
+  }
+
+  function pagination(total, cur) {
+    var el = document.getElementById('pages');
+    if (total <= 1) { el.innerHTML = ''; return; }
+    var h = '';
+    var cls = cur<=1 ? ' off' : '';
+    h += '<a class="page-btn'+cls+'" data-pg="'+(cur-1)+'">← 上一页</a>';
+    var s = Math.max(1, cur-2), e = Math.min(total, cur+2);
+    if (s > 1) h += '<a class="page-btn" data-pg="1">1</a>';
+    if (s > 2) h += '<span style="color:var(--text-muted);">…</span>';
+    for (var i=s; i<=e; i++) h += '<a class="page-btn'+(i===cur?' on':'')+'" data-pg="'+i+'">'+i+'</a>';
+    if (e < total-1) h += '<span style="color:var(--text-muted);">…</span>';
+    if (e < total) h += '<a class="page-btn" data-pg="'+total+'">'+total+'</a>';
+    cls = cur>=total ? ' off' : '';
+    h += '<a class="page-btn'+cls+'" data-pg="'+(cur+1)+'">下一页 →</a>';
+    el.innerHTML = h;
+  }
+
+  function getChecked(checkboxes) {
+    var vals = [];
+    checkboxes.forEach(function(cb) { if (cb.checked) vals.push(cb.value); });
+    return vals;
+  }
+
+  function load() {
+    var params = { sort: sort, page: pg, page_size: psize };
+    var kw = document.getElementById('kw').value.trim();
+    if (kw) params.q = kw;
+    var pmin = document.getElementById('pmin').value;
+    if (pmin) params.price_min = pmin;
+    var pmax = document.getElementById('pmax').value;
+    if (pmax) params.price_max = pmax;
+
+    var selCats = getChecked(document.querySelectorAll('#cat-filters input[type=checkbox]'));
+    if (selCats.length === 1) params.category = selCats[0];
+
+    var selFmts = getChecked(document.querySelectorAll('#fmt-filters input[type=checkbox]'));
+    if (selFmts.length === 1) params.format = selFmts[0];
+
+    var qs = [];
+    for (var k in params) qs.push(k+'='+encodeURIComponent(params[k]));
+    qs = qs.join('&');
+
+    fetch('/api/models?'+qs)
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        document.getElementById('cnt').textContent = d.total;
+        var html = '';
+        for (var i=0; i<d.models.length; i++) html += card(d.models[i]);
+        document.getElementById('grid').innerHTML = html || '<div class="loading-text">没有找到匹配的模型</div>';
+        pagination(d.total_pages, d.page);
+      })
+      .catch(function(e) {
+        document.getElementById('grid').innerHTML = '<div class="loading-text">加载失败: '+e.message+'</div>';
+      });
+  }
+
+  // Event bindings
+  document.getElementById('apply').addEventListener('click', function() { pg=1; load(); });
+  document.getElementById('reset').addEventListener('click', function() {
+    document.getElementById('kw').value = '';
+    document.getElementById('pmin').value = '';
+    document.getElementById('pmax').value = '';
+    document.querySelectorAll('#cat-filters input,#fmt-filters input').forEach(function(cb){cb.checked=false;});
+    document.getElementById('sortby').value = 'hot';
+    sort = 'hot'; pg = 1; load();
+  });
+  document.getElementById('sortby').addEventListener('change', function() { sort=this.value; pg=1; load(); });
+  document.getElementById('go').addEventListener('click', function() { pg=1; load(); });
+  document.getElementById('kw').addEventListener('keydown', function(e) { if (e.key==='Enter'){pg=1;load();} });
+
+  // Pagination click
+  document.getElementById('pages').addEventListener('click', function(e) {
+    var a = e.target.closest('[data-pg]');
+    if (!a) return;
+    e.preventDefault();
+    var n = parseInt(a.getAttribute('data-pg'));
+    if (n && n !== pg) { pg = n; load(); window.scrollTo({top:0,behavior:'smooth'}); }
+  });
+
+  // Initial load
+  load();
+})();
+</script>
+</body>
+</html>

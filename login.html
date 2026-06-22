@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 - PrintHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 20px; }
+.login-card { width: 100%; max-width: 400px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 40px 32px; text-align: center; }
+.login-logo { width: 48px; height: 48px; margin: 0 auto 16px; display: block; }
+.login-card h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; font-family: 'Noto Sans SC',sans-serif; }
+.login-card p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 24px; font-family: 'Noto Sans SC',sans-serif; }
+.login-input { width: 100%; height: 44px; padding: 0 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 0.9rem; margin-bottom: 12px; outline: none; font-family: 'Noto Sans SC',sans-serif; box-sizing: border-box; }
+.login-input:focus { border-color: var(--green); }
+.login-btn { width: 100%; height: 44px; background: var(--green); color: var(--bg); border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.3s; margin-top: 8px; }
+.login-btn:hover { box-shadow: 0 0 25px rgba(26,171,94,0.25); transform: translateY(-1px); }
+.login-switch { margin-top: 16px; font-size: 0.78rem; color: var(--text-muted); }
+.login-switch a { color: var(--green); cursor: pointer; text-decoration: none; font-weight: 600; }
+.login-switch a:hover { text-decoration: underline; }
+.login-error { color: var(--danger); font-size: 0.78rem; margin-top: 8px; min-height: 20px; text-align: center; }
+.login-success { color: var(--green); font-size: 0.78rem; margin-top: 8px; min-height: 20px; text-align: center; }
+.back-home { display: block; margin-top: 20px; font-size: 0.78rem; color: var(--text-muted); text-decoration: none; }
+.back-home:hover { color: var(--green); }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="login-page">
+<div class="login-card">
+    <img class="login-logo" src="assets/logo.png" alt="PrintHub">
+    <h1 data-form-title>登录 PrintHub</h1>
+    <p data-form-subtitle>登录后下载模型、管理订单</p>
+
+    <form id="loginForm" data-form="login">
+        <input type="text" class="login-input" name="username" placeholder="用户名" autocomplete="username" required>
+        <input type="password" class="login-input" name="password" placeholder="密码" autocomplete="current-password" required>
+        <div class="login-error" data-error></div>
+        <button type="submit" class="login-btn">登录</button>
+    </form>
+
+    <form id="registerForm" data-form="register" class="hidden">
+        <input type="text" class="login-input" name="username" placeholder="用户名（至少2个字符）" autocomplete="username" required>
+        <input type="email" class="login-input" name="email" placeholder="邮箱（选填）" autocomplete="email">
+        <input type="password" class="login-input" name="password" placeholder="密码（至少4个字符）" autocomplete="new-password" required>
+        <div class="login-error" data-error></div>
+        <button type="submit" class="login-btn">注册</button>
+    </form>
+
+    <div class="login-switch">
+        <span data-switch-text>还没有账号？</span> <a data-switch-link href="#">立即注册</a>
+    </div>
+    <a href="index.html" class="back-home">← 返回首页</a>
+</div>
+</div>
+
+<script src="assets/js/main.js?v=10"></script>
+<script>
+(function() {
+  var isLogin = true;
+  var loginForm = document.getElementById('loginForm');
+  var registerForm = document.getElementById('registerForm');
+  var switchLink = document.querySelector('[data-switch-link]');
+  var switchText = document.querySelector('[data-switch-text]');
+  var formTitle = document.querySelector('[data-form-title]');
+  var formSubtitle = document.querySelector('[data-form-subtitle]');
+
+  function toggle() {
+    isLogin = !isLogin;
+    if (isLogin) {
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+      formTitle.textContent = '登录 PrintHub';
+      formSubtitle.textContent = '登录后下载模型、管理订单';
+      switchText.textContent = '还没有账号？';
+      switchLink.textContent = '立即注册';
+    } else {
+      loginForm.classList.add('hidden');
+      registerForm.classList.remove('hidden');
+      formTitle.textContent = '注册 PrintHub';
+      formSubtitle.textContent = '创建账号，探索10,000+高质量3D模型';
+      switchText.textContent = '已有账号？';
+      switchLink.textContent = '立即登录';
+    }
+    clearErrors();
+  }
+
+  function clearErrors() {
+    document.querySelectorAll('[data-error]').forEach(function(el) { el.textContent = ''; });
+  }
+
+  function showError(msg) {
+    var err = isLogin ? loginForm.querySelector('[data-error]') : registerForm.querySelector('[data-error]');
+    if (err) err.textContent = msg;
+  }
+
+  switchLink.addEventListener('click', function(e) { e.preventDefault(); toggle(); });
+
+  async function submitForm(e) {
+    e.preventDefault();
+    clearErrors();
+    var form = e.target;
+    var payload = {
+      username: form.username.value.trim(),
+      password: form.password.value
+    };
+    if (!isLogin) payload.email = form.email ? form.email.value.trim() : '';
+
+    try {
+      var endpoint = isLogin ? '/api/user/login' : '/api/user/register';
+      var res = await fetch(endpoint, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      var data = await res.json();
+      if (!data.ok) throw new Error(data.error || '请求失败');
+
+      // Set login state in localStorage for other pages
+      localStorage.setItem('printhub_user', JSON.stringify(data.user));
+      // Redirect to previous page or home
+      var redirect = PrintHub.getUrlParam('redirect') || 'home.html';
+      window.location.href = redirect;
+    } catch (err) {
+      showError(err.message);
+    }
+  }
+
+  loginForm.addEventListener('submit', submitForm);
+  registerForm.addEventListener('submit', submitForm);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - PrintHub Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=6">
+</head>
+<body class="admin-body">
+<aside class="admin-sidebar">
+    <div class="admin-sidebar-top">
+        <a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a>
+    </div>
+    <div class="admin-sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div>
+        <div class="info"><h4>Admin</h4><p>超级管理员</p></div>
+    </div>
+    <nav class="admin-menu">
+        <a href="dashboard.html" class="admin-menu-item" id="menu-dashboard"><span class="icon">📊</span>数据面板</a>
+        <a href="models.html" class="admin-menu-item" id="menu-models"><span class="icon">🧸</span>模型管理</a>
+        <a href="orders.html" class="admin-menu-item" id="menu-orders"><span class="icon">📋</span>订单管理 <span class="badge">5</span></a>
+        <a href="users.html" class="admin-menu-item" id="menu-users"><span class="icon">👤</span>用户管理</a>
+        <a href="settings.html" class="admin-menu-item" id="menu-settings"><span class="icon">⚙️</span>系统设置</a>
+    </nav>
+    <div class="admin-sidebar-bottom">
+        <a href="../index.html"><span>←</span> 返回前台</a><a href="#" data-logout><span>×</span> 退出登录</a>
+    </div>
+</aside>
+<div class="admin-main">
+    <header class="admin-header">
+        <h1>数据面板</h1>
+        <div class="admin-header-actions">
+            <span style="color:var(--text-muted);font-size:0.78rem;">2026-06-21</span>
+            <a href="models.html" class="admin-btn primary">+ 新增模型</a>
+        </div>
+    </header>
+    <div class="admin-content">
+        <div class="admin-stats">
+            <div class="admin-stat-card">
+                <div class="label">模型总数</div>
+                <div class="value">10,248</div>
+                <div class="change">↑ +128 本周</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">订单总数</div>
+                <div class="value secondary">3,856</div>
+                <div class="change">↑ +42 今日</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">用户总数</div>
+                <div class="value secondary">52,430</div>
+                <div class="change">↑ +156 今日</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">总营收</div>
+                <div class="value gold">¥128,560</div>
+                <div class="change">↑ +¥3,420 今日</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">今日访问</div>
+                <div class="value purple">8,420</div>
+                <div class="change down">↓ -12% 环比</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">今日下载</div>
+                <div class="value secondary">2,180</div>
+                <div class="change">↑ +8% 环比</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">转化率</div>
+                <div class="value">4.8%</div>
+                <div class="change">↑ +0.3%</div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="label">新增用户</div>
+                <div class="value secondary">156</div>
+                <div class="change">↑ +23 环比</div>
+            </div>
+        </div>
+        <div class="admin-chart-row">
+            <div class="admin-chart-card">
+                <h3>📈 营收趋势（最近30天）</h3>
+                <canvas id="revenueChart" width="600" height="200"></canvas>
+            </div>
+            <div class="admin-chart-card">
+                <h3>🥧 模型分类占比</h3>
+                <canvas id="categoryChart" width="300" height="200"></canvas>
+            </div>
+        </div>
+        <div class="admin-chart-row" style="grid-template-columns:1fr 1fr;">
+            <div class="admin-chart-card">
+                <h3>📊 访问量 vs 下载量（最近7天）</h3>
+                <canvas id="visitChart" width="600" height="200"></canvas>
+            </div>
+            <div class="admin-chart-card">
+                <h3>🔥 热门搜索关键词</h3>
+                <table class="admin-table" style="margin-top:10px;">
+                    <tr><th>关键词</th><th>搜索次数</th><th>转化率</th></tr>
+                    <tr><td>关节小熊</td><td>1,240</td><td>8.2%</td></tr>
+                    <tr><td>手机支架</td><td>980</td><td>6.5%</td></tr>
+                    <tr><td>齿轮</td><td>856</td><td>5.1%</td></tr>
+                    <tr><td>花瓶</td><td>720</td><td>4.3%</td></tr>
+                    <tr><td>Voron</td><td>650</td><td>7.8%</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function drawBarChart(id, data, labels, color) {
+    const c = document.getElementById(id); if (!c) return;
+    const ctx = c.getContext('2d'), w = c.width, h = c.height;
+    ctx.clearRect(0, 0, w, h); const max = Math.max(...data);
+    const barW = w / data.length * 0.5, gap = w / data.length * 0.5;
+    data.forEach((v, i) => {
+        const barH = (v / max) * h * 0.7, x = i * (barW + gap) + gap / 2, y = h - barH - 30;
+        const g = ctx.createLinearGradient(0, y, 0, h - 30);
+        g.addColorStop(0, color); g.addColorStop(1, color + '22');
+        ctx.fillStyle = g; ctx.fillRect(x, y, barW, barH);
+        ctx.fillStyle = '#888'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(labels[i], x + barW / 2, h - 8);
+    });
+}
+function drawPieChart(id) {
+    const c = document.getElementById(id); if (!c) return;
+    const ctx = c.getContext('2d'), cx = c.width / 2, cy = c.height / 2, r = 65;
+    const data = [30, 22, 15, 12, 10, 11], colors = ['#1aab5e','#158f4e','#0f6e3a','#f5a623','#7c3aed','#444'];
+    let start = 0; data.forEach((v, i) => {
+        const angle = (v / 100) * Math.PI * 2;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, start + angle); ctx.closePath();
+        ctx.fillStyle = colors[i]; ctx.fill(); start += angle;
+    });
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill();
+}
+const days = ['1','5','10','15','20','25','30'];
+drawBarChart('revenueChart', [3200, 4100, 3800, 5200, 4800, 6100, 7200], days, '#1aab5e');
+drawBarChart('visitChart', [1200, 1450, 1380, 1620, 1580, 1890, 2100], ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], '#158f4e');
+drawPieChart('categoryChart');
+</script>
+<script src="admin.js?v=6"></script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrintHub 市场 - 3D模型交易平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.model-card { display: block; text-decoration: none; color: inherit; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
+.model-card:hover { border-color: var(--green); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+.model-card .img-wrap { aspect-ratio: 4/3; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; overflow: hidden; }
+.model-card .info { padding: 14px; }
+.model-card .title { font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Noto Sans SC',sans-serif; }
+.model-card .meta { display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; }
+.model-card .rating { color: var(--gold); }
+.model-card .bottom { display: flex; align-items: center; justify-content: space-between; }
+.model-card .author { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-muted); }
+.model-card .author-avatar { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg,var(--green),var(--green-dim)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); font-size: 0.6rem; }
+.model-card .price { font-weight: 800; font-size: 0.95rem; color: var(--green); }
+.model-card .price.free { color: var(--green); }
+.model-card .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 700; }
+.badge-free { background: var(--green); color: var(--bg); }
+.badge-new { background: var(--gold); color: var(--bg); }
+.badge-vip { background: #7c3aed; color: #fff; }
+.badges { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; }
+.format-tag { position: absolute; top: 8px; right: 8px; padding: 2px 8px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 4px; font-size: 0.6rem; font-weight: 700; }
+.hero-banner { height: 340px; background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-card) 50%, rgba(26,171,94,0.02) 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 6%; position: relative; overflow: hidden; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 48px; }
+.hero-text { max-width: 520px; position: relative; z-index: 2; }
+.hero-text h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.15; margin-bottom: 14px; font-family: 'Noto Sans SC', sans-serif; }
+.hero-text h1 .accent { color: var(--green); }
+.hero-text p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 20px; font-family: 'Noto Sans SC', sans-serif; }
+.hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-badge { padding: 6px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; font-family: 'Noto Sans SC', sans-serif; }
+.hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.quick-cats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 48px; }
+.quick-cat { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.3s; }
+.quick-cat:hover { border-color: var(--green); transform: translateY(-2px); }
+.quick-cat .icon { font-size: 1.4rem; }
+.quick-cat .name { font-weight: 600; font-size: 0.88rem; font-family: 'Noto Sans SC',sans-serif; }
+.quick-cat .count { margin-left: auto; font-size: 0.72rem; color: var(--text-muted); }
+.section { margin-bottom: 48px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-title { font-size: 1.4rem; font-weight: 800; font-family: 'Noto Sans SC',sans-serif; }
+.section-title .accent { color: var(--green); }
+.section-tag { padding: 3px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; font-size: 0.68rem; font-weight: 700; color: var(--text-muted); margin-left: 10px; }
+.view-all { font-size: 0.82rem; color: var(--green); text-decoration: none; font-weight: 600; }
+.view-all:hover { text-decoration: underline; }
+.model-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.vip-banner { display: flex; align-items: center; justify-content: space-between; padding: 28px 32px; background: linear-gradient(135deg, #0a0614, #100820); border: 1px solid rgba(124,58,237,0.2); border-radius: 16px; margin-bottom: 48px; }
+.vip-banner h3 { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.vip-banner h3 span { color: #a855f7; }
+.vip-banner p { font-size: 0.82rem; color: #aaa; margin-bottom: 12px; }
+.vip-features { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.vip-feature { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #ccc; }
+.vip-feature svg { width: 14px; height: 14px; color: var(--green); }
+.vip-btn { display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; }
+@media (max-width: 1024px) { .model-grid { grid-template-columns: repeat(2, 1fr); } .quick-cats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .model-grid { grid-template-columns: 1fr; } .quick-cats { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="left-nav">
+    <a href="index.html" class="left-nav-top"><img class="site-logo-icon" src="assets/logo.png" alt="PrintHub"></a>
+    <a href="index.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="label">首页</span></a>
+    <a href="home.html" class="left-nav-item active"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="label">市场</span></a>
+    <a href="search.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><span class="label">搜索</span></a>
+    <a href="user.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><span class="label">上传</span></a>
+    <a href="user.html" class="left-nav-item"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="label">用户</span></a>
+</nav>
+
+<div class="top-bar">
+    <div class="top-bar-search-wrap">
+        <a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a>
+        <input type="text" class="top-bar-search" placeholder="搜索模型、创作者、标签...">
+        <button class="top-bar-search-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+        <div class="search-cats">
+            <a href="search.html?cat=toy" class="search-cat-tag">玩具</a>
+            <a href="search.html?cat=home" class="search-cat-tag">家居</a>
+            <a href="search.html?cat=tools" class="search-cat-tag">工具</a>
+            <a href="search.html?cat=parts" class="search-cat-tag">机械</a>
+        </div>
+    </div>
+    <a href="login.html" class="top-bar-user">登</a>
+</div>
+
+<main class="main-wrap">
+
+<section class="hero-banner">
+    <div class="hero-text">
+        <h1>发现无限<span class="accent">3D</span>创意</h1>
+        <p>10,000+ 精选高质量模型，覆盖玩具、工具、家居、机械等全品类。支持 STL / OBJ / 3MF 格式。</p>
+        <div class="hero-badges">
+            <span class="hero-badge"><span class="dot"></span>免费模型</span>
+            <span class="hero-badge"><span class="dot"></span>商业授权</span>
+            <span class="hero-badge"><span class="dot"></span>代打印服务</span>
+        </div>
+    </div>
+    <div style="font-size:6rem;opacity:0.1;">🧊</div>
+</section>
+
+<section class="quick-cats">
+    <a href="search.html?cat=toy" class="quick-cat"><span class="icon">🧸</span><span class="name">玩具模型</span><span class="count">2,400+</span></a>
+    <a href="search.html?cat=home" class="quick-cat"><span class="icon">🏠</span><span class="name">家居用品</span><span class="count">1,800+</span></a>
+    <a href="search.html?cat=tools" class="quick-cat"><span class="icon">🛠️</span><span class="name">工具配件</span><span class="count">1,200+</span></a>
+    <a href="search.html?cat=parts" class="quick-cat"><span class="icon">⚙️</span><span class="name">机械零件</span><span class="count">900+</span></a>
+    <a href="search.html?cat=art" class="quick-cat"><span class="icon">🎨</span><span class="name">桌面摆件</span><span class="count">1,500+</span></a>
+    <a href="search.html?cat=holiday" class="quick-cat"><span class="icon">🎄</span><span class="name">节日主题</span><span class="count">600+</span></a>
+    <a href="search.html?cat=diy" class="quick-cat"><span class="icon">🔧</span><span class="name">DIY改装</span><span class="count">700+</span></a>
+    <a href="search.html?cat=electronic" class="quick-cat"><span class="icon">📱</span><span class="name">电子配件</span><span class="count">500+</span></a>
+</section>
+
+<!-- HOT MODELS -->
+<section class="section">
+    <div class="section-header">
+        <div><h2 class="section-title">🔥 热门<span class="accent">模型</span></h2><span class="section-tag">HOT</span></div>
+        <a href="search.html" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" id="hot-grid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div></div>
+</section>
+
+<section class="vip-banner">
+    <div>
+        <h3>升级 <span>VIP 会员</span>，畅享无限下载</h3>
+        <p>月付 ¥39 / 年付 ¥299，解锁全部付费模型，享专属折扣与优先客服支持</p>
+        <div class="vip-features">
+            <span class="vip-feature">✅ 无限下载</span>
+            <span class="vip-feature">✅ 商用授权</span>
+            <span class="vip-feature">✅ 优先客服</span>
+            <span class="vip-feature">✅ 新品尝鲜</span>
+        </div>
+        <a href="user.html" class="vip-btn">立即升级</a>
+    </div>
+    <div style="font-size:5rem;opacity:0.1;">👑</div>
+</section>
+
+<!-- FREE MODELS -->
+<section class="section" style="background:var(--bg-elevated);border-radius:16px;padding:40px;margin:0 -20px;">
+    <div class="section-header">
+        <div><h2 class="section-title">🎁 免费<span class="accent">模型</span></h2><span class="section-tag">FREE</span></div>
+        <a href="search.html?price_max=0" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" id="free-grid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div></div>
+</section>
+
+<!-- NEW MODELS -->
+<section class="section">
+    <div class="section-header">
+        <div><h2 class="section-title">✨ 新品<span class="accent">上架</span></h2><span class="section-tag">NEW</span></div>
+        <a href="search.html?sort=newest" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" id="new-grid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div></div>
+</section>
+
+<!-- VIP MODELS -->
+<section class="section" style="background:var(--bg-elevated);border-radius:16px;padding:40px;margin:0 -20px;">
+    <div class="section-header">
+        <div><h2 class="section-title">👑 会员<span class="accent">专享</span></h2><span class="section-tag">VIP</span></div>
+        <a href="search.html?price_min=1" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" id="vip-grid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div></div>
+</section>
+
+</main>
+
+<script>
+// Minimal self-contained loader - no dependency on main.js
+(function() {
+  function formatPrice(p) { p=Number(p||0); return p<=0?'免费':'¥'+(p%1===0?p:p.toFixed(2)); }
+  function stars(r) { r=Math.round(Number(r||4.5)); return '★★★★★☆☆☆☆'.slice(5-r,10-r); }
+
+  function thumb(m) {
+    if (m.image && (m.image.indexOf('assets/')===0 || m.image.indexOf('data/')===0)) {
+      return '<img src="'+m.image+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+    }
+    return '<div style="font-size:3rem;">'+(m.image||'📦')+'</div>';
+  }
+  function card(m) {
+    var p=Number(m.price||0), isFree=p<=0, tags=(m.tags||'').split(',').map(function(t){return t.trim();});
+    var isNew=tags.indexOf('新品')>=0, isVIP=tags.indexOf('VIP')>=0||m.license_type==='commercial';
+    return '<a href="model.html?id='+m.id+'" class="model-card">'+
+      '<div class="img-wrap">'+thumb(m)+
+      ((isFree||isNew||isVIP)?'<div class="badges">'+(isFree?'<span class="badge badge-free">免费</span>':'')+(isNew?'<span class="badge badge-new">新品</span>':'')+(isVIP?'<span class="badge badge-vip">VIP</span>':'')+'</div>':'')+
+      '<span class="format-tag">'+(m.file_format||'STL')+'</span></div>'+
+      '<div class="info"><div class="title">'+m.title+'</div>'+
+      '<div class="meta"><span class="rating">'+stars(m.rating)+' '+(Number(m.rating||4.5)).toFixed(1)+'</span><span>⬇ '+Number(m.downloads||0).toLocaleString()+'</span></div>'+
+      '<div class="bottom"><div class="author"><div class="author-avatar">'+(m.author||'?')[0]+'</div><span>'+m.author+'</span></div>'+
+      '<div class="price'+(isFree?' free':'')+'">'+formatPrice(p)+'</div></div></div></a>';
+  }
+
+  window.loadCards = function(elId, params) {
+    var el=document.getElementById(elId);
+    if(!el) return;
+    var qs=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+    fetch('/api/models?'+qs)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        el.innerHTML = d.models.map(card).join('');
+      })
+      .catch(function(e){
+        el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载失败: '+e.message+'</div>';
+      });
+  };
+
+  // Load immediately
+  loadCards('hot-grid', {sort:'hot',page_size:8});
+  loadCards('free-grid', {price_max:0,sort:'hot',page_size:4});
+  loadCards('new-grid', {sort:'newest',page_size:4});
+  loadCards('vip-grid', {price_min:1,sort:'rating',page_size:4});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型详情 - PrintHub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.scroll-reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s; }
+.scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+.detail-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px; padding-top: 100px; padding-right: 48px; padding-left: 108px; max-width: 1400px; margin: 0 auto; }
+.preview-area { position: sticky; top: 100px; }
+.preview-img { width: 100%; aspect-ratio: 4/3; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 5rem; opacity: 0.2; margin-bottom: 14px; overflow: hidden; }
+.model-tags { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.tag { padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
+.tag-free { background: var(--green); color: var(--bg); }
+.tag-hot { background: var(--gold); color: var(--bg); }
+.tag-format { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); }
+.info-title { font-size: 1.7rem; font-weight: 800; margin-bottom: 10px; font-family: 'Noto Sans SC',sans-serif; }
+.info-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.info-meta span { font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+.info-author { display: flex; align-items: center; gap: 10px; padding: 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+.info-author-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,var(--green),var(--green-dim)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); }
+.info-author-info h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+.info-author-info p { font-size: 0.72rem; color: var(--text-muted); }
+.follow-btn { margin-left: auto; padding: 8px 16px; background: transparent; border: 1.5px solid var(--green); color: var(--green); border-radius: 6px; font-weight: 600; font-size: 0.78rem; cursor: pointer; transition: all 0.3s; }
+.follow-btn:hover { background: var(--green); color: var(--bg); }
+.info-price { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.price-current { font-size: 1.8rem; font-weight: 800; color: var(--green); }
+.price-discount { padding: 4px 8px; background: var(--danger); color: var(--text); border-radius: 4px; font-size: 0.68rem; font-weight: 700; }
+.action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+.btn-buy { flex: 1; padding: 12px; background: var(--green); color: var(--bg); border: none; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+.btn-buy:hover { box-shadow: 0 0 25px rgba(26,171,94,0.25); transform: translateY(-2px); }
+.btn-cart { padding: 12px 18px; background: var(--bg-card); border: 1.5px solid var(--border); color: var(--text); border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+.btn-cart:hover { border-color: var(--green); color: var(--green); }
+.license-info { padding: 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+.license-info h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-family: 'Noto Sans SC',sans-serif; }
+.license-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 0.82rem; border-bottom: 1px solid var(--border); }
+.license-row:last-child { border-bottom: none; }
+.license-row span:first-child { color: var(--text-muted); }
+.license-row span:last-child { color: var(--text); font-weight: 500; }
+.print-params { padding: 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 20px; }
+.print-params h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 10px; font-family: 'Noto Sans SC',sans-serif; }
+.param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.param-item { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.param-item span:first-child { color: var(--text-muted); }
+.param-item span:last-child { color: var(--text); font-weight: 500; }
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab { padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Noto Sans SC',sans-serif; }
+.tab.active { color: var(--green); border-bottom-color: var(--green); }
+.tab:hover:not(.active) { color: var(--text-secondary); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.desc-text { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; font-family: 'Noto Sans SC',sans-serif; }
+.desc-text p { margin-bottom: 10px; }
+.related-section { padding: 40px 32px 40px 96px; border-top: 1px solid var(--border); background: var(--bg-elevated); margin-top: 50px; }
+.related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; max-width: 1400px; margin: 0 auto; }
+.related-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; font-family: 'Noto Sans SC',sans-serif; max-width: 1400px; margin: 0 auto 20px; }
+.related-title .accent { color: var(--green); }
+@media (max-width: 1024px) { .detail-layout { grid-template-columns: 1fr; padding-right: 16px; padding-left: 80px; } .preview-area { position: relative; top: 0; } .param-grid { grid-template-columns: 1fr; } .related-section { padding-left: 80px; padding-right: 16px; } }
+@media (max-width: 768px) { .left-nav { display: none; } .top-bar { left: 0; } .detail-layout { padding-left: 16px; padding-top: 92px; } .related-section { padding-left: 16px; } }
+</style>
+</head>
+<body>
+<nav class="left-nav">
+<a href="index.html" class="left-nav-top"><img class="site-logo-icon" src="assets/logo.png" alt="PrintHub"></a>
+<a href="index.html" class="left-nav-item "><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="label">首页</span></a>
+<a href="home.html" class="left-nav-item active"><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="label">市场</span></a>
+<a href="search.html" class="left-nav-item "><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><span class="label">搜索</span></a>
+<a href="user.html" class="left-nav-item "><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><span class="label">上传</span></a>
+<a href="user.html" class="left-nav-item "><span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="label">用户</span></a>
+</nav>
+
+<div class="top-bar">
+    <div class="top-bar-search-wrap">
+        <a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a>
+        <input type="text" class="top-bar-search" placeholder="搜索模型、创作者、标签...">
+        <button class="top-bar-search-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+        <div class="search-cats" aria-label="分类快捷搜索">
+            <a href="search.html?cat=toy" class="search-cat-tag">玩具</a>
+            <a href="search.html?cat=home" class="search-cat-tag">家居</a>
+            <a href="search.html?cat=tools" class="search-cat-tag">工具</a>
+            <a href="search.html?cat=parts" class="search-cat-tag">机械</a>
+        </div>
+    </div>
+    <div class="lang-switcher">
+        <button class="lang-btn-globe" type="button" onclick="toggleLangDropdown()" aria-label="切换语言" aria-expanded="false">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20"/><path d="M12 2a15.3 15.3 0 0 0 0 20"/></svg>
+        </button>
+        <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-dropdown-item active" type="button" data-lang="zh" onclick="I18n.setLang('zh')"><span class="flag">中</span><span>中文</span></button>
+            <button class="lang-dropdown-item" type="button" data-lang="en" onclick="I18n.setLang('en')"><span class="flag">EN</span><span>English</span></button>
+            <button class="lang-dropdown-item" type="button" data-lang="ja" onclick="I18n.setLang('ja')"><span class="flag">日</span><span>日本語</span></button>
+            <button class="lang-dropdown-item" type="button" data-lang="ko" onclick="I18n.setLang('ko')"><span class="flag">한</span><span>한국어</span></button>
+        </div>
+    </div>
+    <a href="user.html" class="top-bar-user">U</a>
+</div>
+
+<main class="detail-layout">
+    <div class="preview-area">
+        <div class="preview-img" data-detail-img>🧸</div>
+    </div>
+    <div class="info-area" data-detail-info>
+        <div style="text-align:center;padding:60px;color:var(--text-muted);">加载中...</div>
+    </div>
+</main>
+
+<section class="related-section">
+    <h2 class="related-title">相关<span class="accent">推荐</span></h2>
+    <div class="related-grid" data-related-grid>
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div>
+    </div>
+</section>
+
+<script src="assets/js/main.js?v=10"></script>
+<script>
+(function() {
+  const modelId = PrintHub.getUrlParam('id') || '1';
+
+  function switchTab(el, tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    var target = document.getElementById('tab-' + tabId);
+    if (target) target.classList.add('active');
+  }
+
+  function renderStars(r) { return PrintHub.renderStars(r); }
+  function formatPrice(p) { return PrintHub.formatPrice(p); }
+
+  function renderDetail(model) {
+    var price = Number(model.price || 0);
+    var isFree = price <= 0;
+    var tags = (model.tags || '').split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    var params = {};
+    try { params = JSON.parse(model.print_params || '{}'); } catch(e) {}
+
+    document.title = model.title + ' - PrintHub';
+    var img = document.querySelector('[data-detail-img]');
+    if (model.image && (model.image.indexOf('assets/')===0 || model.image.indexOf('data/')===0)) {
+      img.innerHTML = '<img src="'+model.image+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+    } else {
+      img.textContent = model.image || '📦';
+    }
+
+    var paramHtml = '';
+    var paramMap = [
+      ['layer_height','层高'], ['infill','填充密度'], ['wall','壁厚'],
+      ['support','支撑'], ['nozzle_temp','打印温度'], ['bed_temp','热床温度'],
+      ['print_time','打印时间'], ['filament','耗材用量'], ['size','打印尺寸']
+    ];
+    paramMap.forEach(function(p) {
+      if (params[p[0]]) paramHtml += '<div class="param-item"><span>'+p[1]+'</span><span>'+params[p[0]]+'</span></div>';
+    });
+
+    var infoHtml = '';
+    infoHtml += '<div class="model-tags">';
+    if (isFree) infoHtml += '<span class="tag tag-free">免费</span>';
+    if (tags.indexOf('热门') >= 0) infoHtml += '<span class="tag tag-hot">热门</span>';
+    if (tags.indexOf('新品') >= 0) infoHtml += '<span class="tag tag-hot">新品</span>';
+    infoHtml += '<span class="tag tag-format">' + (model.file_format || 'STL') + '</span>';
+    infoHtml += '</div>';
+    infoHtml += '<h1 class="info-title">' + model.title + '</h1>';
+    infoHtml += '<div class="info-meta">';
+    infoHtml += '<span style="color:var(--gold);">' + renderStars(model.rating) + ' ' + Number(model.rating||4.5).toFixed(1) + '</span>';
+    infoHtml += '<span>⬇ ' + Number(model.downloads||0).toLocaleString() + ' 次下载</span>';
+    infoHtml += '<span>💬 ' + (model.rating_count||0) + ' 条评论</span>';
+    infoHtml += '<span>📅 ' + (model.created_at||'').slice(0,10) + '</span>';
+    infoHtml += '</div>';
+    infoHtml += '<div class="info-author">';
+    infoHtml += '<div class="info-author-avatar">' + (model.author||'?')[0] + '</div>';
+    infoHtml += '<div class="info-author-info"><h4>' + (model.author||'未知') + '</h4><p>' + (model.category||'') + ' · 优质创作者</p></div>';
+    infoHtml += '<button class="follow-btn">关注</button>';
+    infoHtml += '</div>';
+    infoHtml += '<div class="info-price">';
+    infoHtml += '<span class="price-current">' + formatPrice(price) + '</span>';
+    infoHtml += isFree ? '<span class="price-discount">限时免费</span>' : '<span class="price-discount">付费模型</span>';
+    infoHtml += '</div>';
+    infoHtml += '<div class="action-buttons">';
+    var hasFile = model.file_path && model.file_path.length > 0;
+    var dlHref = hasFile ? '/api/models/' + model.id + '/download' : 'user.html';
+    infoHtml += '<a href="' + dlHref + '" class="btn-buy" ' + (!hasFile ? '' : 'download') + '>' + (isFree ? (hasFile ? '免费下载' : '文件待上传') : '立即购买 · ' + formatPrice(price)) + '</a>';
+    infoHtml += '<button class="btn-cart">🛒</button>';
+    infoHtml += '</div>';
+    infoHtml += '<div class="license-info">';
+    infoHtml += '<h4>🔒 授权信息</h4>';
+    infoHtml += '<div class="license-row"><span>授权类型</span><span>' + (model.license_type==='commercial'?'商业使用授权':'个人使用授权') + '</span></div>';
+    infoHtml += '<div class="license-row"><span>文件格式</span><span>' + (model.file_format||'STL') + '</span></div>';
+    if (params.size) infoHtml += '<div class="license-row"><span>打印尺寸</span><span>' + params.size + '</span></div>';
+    infoHtml += '</div>';
+    infoHtml += '<div class="print-params">';
+    infoHtml += '<h4>🔧 推荐打印参数</h4><div class="param-grid">' + (paramHtml || '<div class="param-item"><span>暂无</span><span>—</span></div>') + '</div></div>';
+    infoHtml += '<div class="tabs">';
+    infoHtml += '<button class="tab active" onclick="switchTab(this,\'desc\')">模型描述</button>';
+    infoHtml += '<button class="tab" onclick="switchTab(this,\'reviews\')">用户评价</button>';
+    infoHtml += '</div>';
+    infoHtml += '<div class="tab-content active" id="tab-desc"><div class="desc-text">';
+    infoHtml += model.description ? '<p>' + model.description.replace(/\n/g, '</p><p>') + '</p>' : '<p>暂无描述。</p>';
+    infoHtml += '</div></div>';
+    infoHtml += '<div class="tab-content" id="tab-reviews"><div class="review-item">';
+    infoHtml += '<div class="review-header"><div class="review-avatar">U</div><div class="review-info"><h5>用户</h5><span>近期</span></div></div>';
+    infoHtml += '<div class="review-stars">' + renderStars(model.rating) + '</div>';
+    infoHtml += '<div class="review-text">评分 ' + Number(model.rating||4.5).toFixed(1) + ' / 5.0 · ' + (model.rating_count||0) + ' 条评价</div>';
+    infoHtml += '</div></div>';
+
+    document.querySelector('[data-detail-info]').innerHTML = infoHtml;
+  }
+
+  async function loadRelated(category) {
+    var grid = document.querySelector('[data-related-grid]');
+    if (!grid) return;
+    try {
+      await PrintHub.loadModelCards(grid, { category: category, page_size: 4, sort: 'hot' });
+    } catch(e) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载失败</div>';
+    }
+  }
+
+  async function start() {
+    try {
+      var data = await PrintHub.api('/api/models/' + modelId);
+      renderDetail(data.model);
+      loadRelated(data.model.category);
+      window.switchTab = switchTab;
+    } catch(e) {
+      document.querySelector('[data-detail-info]').innerHTML =
+        '<div style="text-align:center;padding:60px;color:var(--text-muted);">模型加载失败: ' + e.message + '<br><a href="home.html">返回市场</a></div>';
+    }
+  }
+  if (typeof PrintHub !== 'undefined' && PrintHub.api) { start(); }
+  else { window.addEventListener('printhub-ready', start); }
+})();
+</script>
+</body>
+</html>

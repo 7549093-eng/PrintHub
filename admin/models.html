@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型管理 - PrintHub Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=6">
+</head>
+<body class="admin-body">
+<aside class="admin-sidebar">
+    <div class="admin-sidebar-top">
+        <a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a>
+    </div>
+    <div class="admin-sidebar-user">
+        <div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div>
+        <div class="info"><h4>Admin</h4><p>超级管理员</p></div>
+    </div>
+    <nav class="admin-menu">
+        <a href="dashboard.html" class="admin-menu-item" id="menu-dashboard"><span class="icon">📊</span>数据面板</a>
+        <a href="models.html" class="admin-menu-item" id="menu-models"><span class="icon">🧸</span>模型管理</a>
+        <a href="orders.html" class="admin-menu-item" id="menu-orders"><span class="icon">📋</span>订单管理 <span class="badge">5</span></a>
+        <a href="users.html" class="admin-menu-item" id="menu-users"><span class="icon">👤</span>用户管理</a>
+        <a href="settings.html" class="admin-menu-item" id="menu-settings"><span class="icon">⚙️</span>系统设置</a>
+    </nav>
+    <div class="admin-sidebar-bottom">
+        <a href="../index.html"><span>←</span> 返回前台</a>
+    </div>
+</aside>
+<div class="admin-main">
+    <header class="admin-header">
+        <h1>模型管理</h1>
+        <div class="admin-header-actions">
+            <div class="admin-filter-bar" style="margin-bottom:0;">
+                <input type="text" placeholder="搜索模型..." data-model-search>
+                <select data-model-status><option value="">全部状态</option><option value="on">已上架</option><option value="off">已下架</option></select>
+                <select><option>全部分类</option><option>玩具</option><option>家居</option><option>工具</option></select>
+            </div>
+            <button class="admin-btn primary" type="submit" form="modelForm">+ 新增模型</button>
+        </div>
+    </header>
+    <div class="admin-content">
+        <form class="admin-create-form" id="modelForm" data-model-form>
+            <label>模型名称<input name="title" type="text" placeholder="例如：桌面手机支架" required></label>
+            <label>分类<input name="category" type="text" placeholder="工具 / 家居 / 玩具" required></label>
+            <label>价格<input name="price" type="number" min="0" step="0.01" value="0"></label>
+            <label>格式<select name="file_format"><option>STL</option><option>3MF</option><option>OBJ</option></select></label>
+            <label>图标<input name="image" type="text" value="📦" maxlength="4"></label>
+        </form>
+        <div class="admin-table-wrap">
+            <div class="admin-table-header">
+                <h3>模型列表</h3>
+                <span style="color:var(--text-muted);font-size:0.78rem;" data-model-count>正在加载...</span>
+            </div>
+            <table class="admin-table">
+                <thead><tr><th>模型</th><th>分类</th><th>价格</th><th>格式</th><th>下载</th><th>文件</th><th>状态</th><th>创建日期</th><th>操作</th></tr></thead>
+                <tbody data-model-list></tbody>
+            </table>
+            <div class="admin-pagination">
+                <a href="#" class="admin-page-btn" style="opacity:0.4;pointer-events:none;">←</a>
+                <a href="#" class="admin-page-btn active">1</a>
+                <a href="#" class="admin-page-btn">2</a>
+                <a href="#" class="admin-page-btn">3</a>
+                <a href="#" class="admin-page-btn">4</a>
+                <span style="color:var(--text-muted);font-size:0.82rem;">...</span>
+                <a href="#" class="admin-page-btn">128</a>
+                <a href="#" class="admin-page-btn">→</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="admin.js?v=6"></script>
+<script>document.getElementById('menu-models').classList.add('active');</script>
+</body>
+</html>

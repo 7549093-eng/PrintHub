@@ -1,0 +1,46 @@
+{
+  "name": "PrintHub",
+  "brand": "PrintHub",
+  "nav": {
+    "home": "홈",
+    "market": "마켓",
+    "search": "검색",
+    "upload": "업로드",
+    "user": "사용자",
+    "admin": "관리",
+    "about": "소개"
+  },
+  "hero": {
+    "title": "창의력을 현실로",
+    "subtitle": "고품질 3D 모델 플랫폼",
+    "desc": "10,000+ 엄선된 모델. STL / OBJ / 3MF 지원. 즉시 다운로드.",
+    "searchPlaceholder": "모델, 크리에이터, 태그 검색...",
+    "ctaBrowse": "둘러보기",
+    "ctaLearn": "자세히",
+    "enterHome": "홈으로"
+  },
+  "sections": {
+    "hotModels": "인기",
+    "freeModels": "무료",
+    "newModels": "신규",
+    "vipModels": "VIP",
+    "categories": "카테고리",
+    "features": "핵심 기능",
+    "about": "소개",
+    "cta": "3D 프린팅 시작"
+  },
+  "footer": {
+    "models": "모델",
+    "services": "서비스",
+    "support": "지원",
+    "legal": "법률",
+    "copyright": "© 2026 PrintHub. All rights reserved."
+  },
+  "admin": {
+    "dashboard": "대시보드",
+    "models": "모델 관리",
+    "orders": "주문 관리",
+    "users": "사용자 관리",
+    "settings": "설정"
+  }
+}

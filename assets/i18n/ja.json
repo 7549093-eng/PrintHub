@@ -1,0 +1,46 @@
+{
+  "name": "PrintHub",
+  "brand": "PrintHub",
+  "nav": {
+    "home": "ホーム",
+    "market": "マーケット",
+    "search": "検索",
+    "upload": "アップロード",
+    "user": "ユーザー",
+    "admin": "管理",
+    "about": "概要"
+  },
+  "hero": {
+    "title": "アイデアを形に",
+    "subtitle": "高品質3Dモデルプラットフォーム",
+    "desc": "10,000以上の厳選モデル。STL / OBJ / 3MF対応。即座にダウンロード。",
+    "searchPlaceholder": "モデル、クリエイター、タグを検索...",
+    "ctaBrowse": "モデルを探す",
+    "ctaLearn": "詳細を見る",
+    "enterHome": "ホームへ"
+  },
+  "sections": {
+    "hotModels": "人気",
+    "freeModels": "無料",
+    "newModels": "新着",
+    "vipModels": "VIP",
+    "categories": "カテゴリ",
+    "features": "主な機能",
+    "about": "概要",
+    "cta": "3Dプリントの旅を始める"
+  },
+  "footer": {
+    "models": "モデル",
+    "services": "サービス",
+    "support": "サポート",
+    "legal": "法的事項",
+    "copyright": "© 2026 PrintHub. All rights reserved."
+  },
+  "admin": {
+    "dashboard": "ダッシュボード",
+    "models": "モデル管理",
+    "orders": "注文管理",
+    "users": "ユーザー管理",
+    "settings": "設定"
+  }
+}

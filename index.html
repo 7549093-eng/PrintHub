@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrintHub 印模库 - 3D模型交易平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.scroll-reveal { opacity: 1 !important; transform: none !important; }
+.scroll-reveal.visible { opacity: 1; transform: translateY(0); }
+.model-card { display: block; text-decoration: none; color: inherit; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
+.model-card:hover { border-color: var(--green); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+.model-card .img-wrap { aspect-ratio: 4/3; background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; overflow: hidden; }
+.model-card .info { padding: 14px; }
+.model-card .title { font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'Noto Sans SC',sans-serif; }
+.model-card .meta { display: flex; align-items: center; gap: 10px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; }
+.model-card .rating { color: var(--gold); }
+.model-card .bottom { display: flex; align-items: center; justify-content: space-between; }
+.model-card .author { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-muted); }
+.model-card .author-avatar { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg,var(--green),var(--green-dim)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg); font-size: 0.6rem; }
+.model-card .price { font-weight: 800; font-size: 0.95rem; color: var(--green); }
+.model-card .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.6rem; font-weight: 700; }
+.badge-free { background: var(--green); color: var(--bg); }
+.badge-new { background: var(--gold); color: var(--bg); }
+.badges { position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; }
+.format-tag { position: absolute; top: 8px; right: 8px; padding: 2px 8px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 4px; font-size: 0.6rem; font-weight: 700; }
+.placeholder { font-size: 3rem; }
+.model-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+@media (max-width: 1024px) { .model-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .model-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Left Navigation -->
+<nav class="left-nav">
+    <a href="index.html" class="left-nav-top" title="PrintHub"><img class="site-logo-icon" src="assets/logo.png" alt="PrintHub"></a>
+    <a href="index.html" class="left-nav-item active">
+        <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        <span class="label" data-i18n="nav.home">首页</span>
+    </a>
+    <a href="home.html" class="left-nav-item">
+        <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+        <span class="label" data-i18n="nav.market">市场</span>
+    </a>
+    <a href="search.html" class="left-nav-item">
+        <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+        <span class="label" data-i18n="nav.search">搜索</span>
+    </a>
+    <a href="user.html" class="left-nav-item">
+        <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span>
+        <span class="label" data-i18n="nav.upload">上传</span>
+    </a>
+    <a href="user.html" class="left-nav-item">
+        <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="label" data-i18n="nav.user">用户</span>
+    </a>
+</nav>
+
+<!-- Top Bar (Search + Lang) -->
+<div class="top-bar">
+    <div class="top-bar-search-wrap">
+        <a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a>
+        <input type="text" class="top-bar-search" data-i18n-placeholder="hero.searchPlaceholder" placeholder="搜索模型、创作者、标签...">
+        <button class="top-bar-search-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></button>
+        <div class="search-cats" aria-label="分类快捷搜索">
+            <a href="search.html?cat=toy" class="search-cat-tag">玩具</a>
+            <a href="search.html?cat=home" class="search-cat-tag">家居</a>
+            <a href="search.html?cat=tools" class="search-cat-tag">工具</a>
+            <a href="search.html?cat=parts" class="search-cat-tag">机械</a>
+        </div>
+    </div>
+    <div class="lang-switcher">
+        <button class="lang-btn-globe" type="button" onclick="toggleLangDropdown()" aria-label="切换语言" aria-expanded="false">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20"/><path d="M12 2a15.3 15.3 0 0 0 0 20"/></svg>
+        </button>
+        <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-dropdown-item active" type="button" data-lang="zh" onclick="I18n.setLang('zh')"><span class="flag">中</span><span>中文</span></button>
+            <button class="lang-dropdown-item" type="button" data-lang="en" onclick="I18n.setLang('en')"><span class="flag">EN</span><span>English</span></button>
+            <button class="lang-dropdown-item" type="button" data-lang="ja" onclick="I18n.setLang('ja')"><span class="flag">日</span><span>日本語</span></button>
+            <button class="lang-dropdown-item" type="button" data-lang="ko" onclick="I18n.setLang('ko')"><span class="flag">한</span><span>한국어</span></button>
+        </div>
+    </div>
+    <a href="user.html" class="top-bar-user">U</a>
+</div>
+
+<!-- Floating Upload -->
+<a href="user.html" class="fab-upload" title="上传模型">+</a>
+
+<main class="main-wrap" style="padding-top:0; padding-left:108px;">
+
+<!-- ========== SECTION 1: 3D PRINTER ANIMATION ========== -->
+<section class="printer-section" id="hero">
+    <div class="printer-grid-bg"></div>
+    <div class="hero-logo-stage"><img class="hero-brand-logo" src="assets/logo.png" alt="PrintHub"></div>
+    <div class="printer-scene">
+        <div class="printer-container">
+            <div class="printer-frame printer-frame-top">
+                <div class="temp-display">E: <span>210°C</span><br>B: <span>60°C</span></div>
+                <div class="printer-status"><div class="status-dot"></div><span class="status-text">PRINTING</span></div>
+            </div>
+            <div class="z-axis"></div>
+            <div class="x-axis"></div>
+            <div class="print-head"></div>
+            <div class="filament-particles"></div>
+            <div class="print-line"></div>
+            <div class="spinning-object">
+                <div class="spin-face">P</div>
+                <div class="spin-face">P</div>
+                <div class="spin-face">P</div>
+                <div class="spin-face">P</div>
+            </div>
+            <div class="print-bed"></div>
+            <div class="printer-frame printer-frame-bottom"></div>
+        </div>
+    </div>
+    <div class="printer-content">
+        <div class="printer-tag anim-fade">3D MODEL MARKETPLACE</div>
+        <h1 class="printer-title anim-fade anim-delay-1">
+            <span class="accent" data-i18n="brand">PrintHub</span><br>
+            <span data-i18n="hero.title">让创意触手可及</span>
+        </h1>
+        <p class="printer-subtitle anim-fade anim-delay-2" data-i18n="hero.subtitle">高质量 3D 模型下载平台</p>
+        <p class="printer-desc anim-fade anim-delay-3" data-i18n="hero.desc">10,000+ 精选模型，覆盖玩具、工具、家居、机械等全品类。支持 STL / OBJ / 3MF 格式，即刻下载打印。</p>
+        <div class="printer-buttons anim-fade anim-delay-4">
+            <a href="home.html" class="btn-primary" data-i18n="hero.ctaBrowse">浏览模型</a>
+            <a href="#about" class="btn-secondary" data-i18n="hero.ctaLearn">了解更多</a>
+        </div>
+    </div>
+    <div class="scroll-hint">
+        <span>↓</span>
+    </div>
+</section>
+
+<!-- ========== SECTION 2: ABOUT US ========== -->
+<section class="section" id="about">
+    <div class="about-section">
+        <div class="about-grid">
+            <div class="about-left">
+                <div class="section-title-wrap" style="margin-bottom:20px;">
+                    <h2 class="section-title" style="font-size:2.2rem;"><span data-i18n="sections.about">关于</span><span class="accent">我们</span></h2>
+                </div>
+                <p>我们致力于打造一个高质量、实用型的 3D 模型下载平台，为 3D 打印爱好者、设计师、创客、小型工作室和商业用户提供便捷、可靠、价格友好的数字模型资源。</p>
+                <div class="about-stats">
+                    <div class="about-stat scroll-reveal">
+                        <div class="num" data-count="10000">0</div>
+                        <div class="label">精选模型</div>
+                    </div>
+                    <div class="about-stat scroll-reveal">
+                        <div class="num" data-count="50000">0</div>
+                        <div class="label">活跃用户</div>
+                    </div>
+                    <div class="about-stat scroll-reveal">
+                        <div class="num" data-count="98">0</div>
+                        <div class="label">打印成功率</div>
+                    </div>
+                    <div class="about-stat scroll-reveal">
+                        <div class="num" data-count="24">0</div>
+                        <div class="label">小时快速交付</div>
+                    </div>
+                </div>
+            </div>
+            <div class="about-right" style="display:flex;flex-direction:column;gap:16px;">
+                <div class="about-card scroll-reveal">
+                    <h3>🎯 实用至上</h3>
+                    <p>涵盖桌面摆件、实用工具、家居配件、玩具模型、DIY改装件、节日主题模型。我们注重模型的实用性、可打印性和下载体验，让每个模型都不仅"好看"，更要"能用"。</p>
+                </div>
+                <div class="about-card scroll-reveal">
+                    <h3>💡 灵活选择</h3>
+                    <p>平台提供免费模型与付费模型，满足不同用户需求。无论您只是想尝试一次 3D 打印，还是希望批量下载模型用于个人创作、商业打印或产品开发，都可以找到合适资源。</p>
+                </div>
+                <div class="about-card scroll-reveal">
+                    <h3>🚀 简单高效</h3>
+                    <p>用户可以轻松浏览、搜索、购买和下载模型，也可以根据需求选择商用授权、代打印服务或定制改模服务。目标不是复杂难懂的模型库，而是简单、高效、值得信任的平台。</p>
+                </div>
+                <div class="about-card scroll-reveal">
+                    <h3>🌟 降低门槛</h3>
+                    <p>通过更低的使用门槛、更清晰的授权规则和更实用的模型内容，我们希望帮助更多人把创意变成真实可见、可触摸、可使用的作品。让 3D 模型更容易获得，让创意更快落地。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== SECTION 3: MODEL SHOWCASE ========== -->
+<section class="section" id="models">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <h2 class="section-title" data-i18n="sections.hotModels">热门<span class="accent">模型</span></h2>
+            <span class="section-tag">HOT</span>
+        </div>
+        <a href="home.html" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" data-load="hot">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div>
+    </div>
+</section>
+
+<section class="section" style="background:var(--bg-elevated); border-radius:var(--radius); padding:60px 0; margin:0 -40px; padding-left:40px; padding-right:40px;">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <h2 class="section-title" data-i18n="sections.freeModels">免费<span class="accent">模型</span></h2>
+            <span class="section-tag">FREE</span>
+        </div>
+        <a href="home.html" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" data-load="free">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <h2 class="section-title" data-i18n="sections.newModels">新品<span class="accent">上架</span></h2>
+            <span class="section-tag">NEW</span>
+        </div>
+        <a href="home.html" class="view-all">查看全部 →</a>
+    </div>
+    <div class="model-grid" data-load="new">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">加载中...</div>
+    </div>
+</section>
+
+<!-- ========== SECTION 4: FEATURES ========== -->
+<section class="section" id="features">
+    <div class="section-header">
+        <div class="section-title-wrap">
+            <h2 class="section-title" data-i18n="sections.features">核心<span class="accent">功能</span></h2>
+            <span class="section-tag">FEATURES</span>
+        </div>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card scroll-reveal">
+            <div class="icon">🔍</div>
+            <h3>智能搜索筛选</h3>
+            <p>支持关键词、分类、价格、格式、打印方式、难度等多维度筛选，热门/最新/下载量排序，快速精准找到所需模型。</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="icon">👁️</div>
+            <h3>3D 在线预览</h3>
+            <p>购买前可在线 360° 预览模型，查看文件格式、尺寸、推荐打印参数，确保每个模型都符合您的打印需求。</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="icon">🛒</div>
+            <h3>灵活付费方式</h3>
+            <p>支持单个模型购买、会员订阅（月/年）、点数充值系统，满足不同使用频率的用户需求。</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="icon">📄</div>
+            <h3>清晰授权体系</h3>
+            <p>个人使用授权、商业打印授权、企业授权、独家授权分级明确，购买后自动生成授权证书。</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="icon">🔒</div>
+            <h3>安全下载</h3>
+            <p>登录验证、支付验证、临时下载链接、防盗链、下载次数限制，支持 STL、OBJ、3MF 等核心格式。</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <div class="icon">🖨️</div>
+            <h3>代打印服务</h3>
+            <p>不想自己打印？选择代打印服务，我们提供多种材料、颜色选择，专业设备打印后邮寄到家。</p>
+        </div>
+    </div>
+</section>
+
+<!-- ========== SECTION 5: CTA + CONTACT ========== -->
+<section class="cta-section" id="cta">
+    <div class="scroll-reveal" style="position:relative;z-index:2;">
+        <h2><span data-i18n="sections.cta">开始您的 3D 打印之旅</span></h2>
+        <p>加入 PrintHub 印模库，探索数千个高质量 3D 模型，让创意不再停留于想象。</p>
+        <a href="home.html" class="btn-primary" data-i18n="hero.enterHome">进入主页</a>
+    </div>
+</section>
+
+<section class="section" id="contact" style="text-align:center;max-width:600px;margin:0 auto 60px;">
+    <div class="section-title-wrap" style="margin-bottom:24px;">
+        <h2 class="section-title">联系<span class="accent">我们</span></h2>
+    </div>
+    <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;font-family:'Noto Sans SC',sans-serif;">
+        如需定制开发、商务合作或模型授权咨询，欢迎通过以下方式联系我们。
+    </p>
+    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:200px;">
+            <div style="font-size:1.5rem;margin-bottom:8px;">📧</div>
+            <div style="font-weight:700;margin-bottom:4px;">邮箱</div>
+            <div style="color:var(--green);font-size:0.85rem;">contact@printhub3d.com</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:200px;">
+            <div style="font-size:1.5rem;margin-bottom:8px;">💬</div>
+            <div style="font-weight:700;margin-bottom:4px;">微信</div>
+            <div style="color:var(--green);font-size:0.85rem;">PrintHub_3D</div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:200px;">
+            <div style="font-size:1.5rem;margin-bottom:8px;">🕐</div>
+            <div style="font-weight:700;margin-bottom:4px;">响应时间</div>
+            <div style="color:var(--green);font-size:0.85rem;">24 小时内回复</div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-grid">
+        <div><div class="footer-brand"><img class="footer-logo" src="assets/logo.png" alt="PrintHub"></div><p class="footer-desc">高质量 3D 模型下载平台，提供 STL / OBJ / 3MF 格式模型，支持个人打印、商业授权、DIY 创作、代打印与定制改模服务。</p></div>
+        <div><div class="footer-title" data-i18n="footer.models">模型</div><ul class="footer-links"><li><a href="home.html">热门模型</a></li><li><a href="home.html">免费模型</a></li><li><a href="home.html">新品上架</a></li><li><a href="home.html">会员专享</a></li></ul></div>
+        <div><div class="footer-title" data-i18n="footer.services">服务</div><ul class="footer-links"><li><a href="user.html">会员订阅</a></li><li><a href="user.html">点数充值</a></li><li><a href="user.html">代打印服务</a></li><li><a href="user.html">定制改模</a></li></ul></div>
+        <div><div class="footer-title" data-i18n="footer.support">支持</div><ul class="footer-links"><li><a href="index.html">使用帮助</a></li><li><a href="index.html">授权说明</a></li><li><a href="index.html">打印指南</a></li><li><a href="#contact">联系我们</a></li></ul></div>
+        <div><div class="footer-title" data-i18n="footer.legal">法律</div><ul class="footer-links"><li><a href="index.html">服务条款</a></li><li><a href="index.html">隐私政策</a></li><li><a href="index.html">版权声明</a></li><li><a href="index.html">DMCA 投诉</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+        <div class="footer-copyright" data-i18n="footer.copyright">© 2026 PrintHub 印模库. 保留所有权利.</div>
+        <div class="footer-copyright">让 3D 模型更容易获得，让创意更快落地。</div>
+    </div>
+</footer>
+
+<script src="assets/js/main.js?v=10"></script>
+<script>
+(function() {
+  function formatPrice(p) { p=Number(p||0); return p<=0?'免费':'¥'+(p%1===0?p:p.toFixed(2)); }
+  function stars(r) { r=Math.round(Number(r||4.5)); return '★★★★★☆☆☆☆'.slice(5-r,10-r); }
+  function thumb(m) {
+    if (m.image && (m.image.indexOf('assets/')===0 || m.image.indexOf('data/')===0)) {
+      return '<img src="'+m.image+'" style="width:100%;height:100%;object-fit:cover;" alt="">';
+    }
+    return '<div class="placeholder">'+(m.image||'📦')+'</div>';
+  }
+  function card(m) {
+    var p=Number(m.price||0), isFree=p<=0, tags=(m.tags||'').split(',').map(function(t){return t.trim();});
+    var isNew=tags.indexOf('新品')>=0;
+    return '<a href="model.html?id='+m.id+'" class="model-card scroll-reveal">'+
+      '<div class="img-wrap">'+thumb(m)+
+      ((isFree||isNew)?'<div class="badges">'+(isFree?'<span class="badge badge-free">免费</span>':'')+(isNew?'<span class="badge badge-new">新品</span>':'')+'</div>':'')+
+      '<span class="format-tag">'+(m.file_format||'STL')+'</span></div>'+
+      '<div class="info"><div class="title">'+m.title+'</div>'+
+      '<div class="meta"><span class="rating">'+stars(m.rating)+' '+Number(m.rating||4.5).toFixed(1)+'</span><span class="downloads">⬇ '+Number(m.downloads||0).toLocaleString()+'</span></div>'+
+      '<div class="bottom"><div class="author"><div class="author-avatar">'+(m.author||'?')[0]+'</div><span class="author-name">'+m.author+'</span></div>'+
+      '<div class="price">'+formatPrice(p)+'</div></div></div></a>';
+  }
+  function load(id, params) {
+    var el=document.querySelector('[data-load="'+id+'"]');
+    if(!el) return;
+    var qs=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
+    fetch('/api/models?'+qs).then(function(r){return r.json();}).then(function(d){
+      el.innerHTML=d.models.map(card).join('');
+    }).catch(function(e){el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;">加载失败</div>';});
+  }
+  load('hot',{sort:'hot',page_size:8});
+  load('free',{price_max:0,sort:'hot',page_size:4});
+  load('new',{sort:'newest',page_size:4});
+})();
+</script>
+</body>
+</html>

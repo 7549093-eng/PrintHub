@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrintHub Admin - 后台管理系统</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=6">
+</head>
+<body class="admin-body">
+<div class="login-page">
+    <section class="login-visual">
+        <div class="login-visual-inner">
+            <img class="login-brand-logo" src="../assets/logo.png" alt="PrintHub" width="380" style="width:min(380px,42vw);max-width:100%;height:auto;display:block;margin-bottom:28px;">
+            <p class="login-kicker">INDEPENDENT ADMIN CONSOLE</p>
+            <h1>PrintHub 后台管理系统</h1>
+            <p class="login-visual-copy">独立管理模型、订单、用户和运营数据。主站不再显示后台入口，后台仅通过专属地址访问。</p>
+            <div class="login-metric-grid">
+                <div><strong>10,000+</strong><span>模型资源</span></div>
+                <div><strong>50,000+</strong><span>活跃用户</span></div>
+                <div><strong>24h</strong><span>订单响应</span></div>
+            </div>
+            <div class="login-feature-grid">
+                <div class="login-feature-card"><span>01</span><strong>模型上下架</strong><p>批量管理模型状态、分类和价格。</p></div>
+                <div class="login-feature-card"><span>02</span><strong>订单查询</strong><p>查看订单、支付状态和下载记录。</p></div>
+                <div class="login-feature-card"><span>03</span><strong>用户运营</strong><p>管理会员、积分和授权权益。</p></div>
+                <div class="login-feature-card"><span>04</span><strong>数据概览</strong><p>追踪下载量、收入和转化表现。</p></div>
+            </div>
+        </div>
+        <div class="login-orbit login-orbit-one"></div>
+        <div class="login-orbit login-orbit-two"></div>
+    </section>
+    <section class="login-panel">
+        <div class="login-card">
+            <img class="login-card-logo" src="../assets/logo.png" alt="PrintHub" width="116" style="width:116px;height:auto;display:block;margin:0 auto 14px;">
+            <h2>管理员登录</h2>
+            <p>请输入后台账号进入管理系统</p>
+            <form data-login-form>
+                <input type="text" class="login-input" name="username" placeholder="用户名" autocomplete="username" required>
+                <input type="password" class="login-input" name="password" placeholder="密码" autocomplete="current-password" required>
+                <p class="login-error" data-login-error></p>
+                <button class="login-btn" type="submit">登录后台</button>
+            </form>
+            <div class="login-note">后台入口：/admin/index.html</div>
+        </div>
+    </section>
+    </div>
+<script src="admin.js?v=6"></script>
+</body>
+</html>

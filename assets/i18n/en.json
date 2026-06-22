@@ -1,0 +1,46 @@
+{
+  "name": "PrintHub",
+  "brand": "PrintHub",
+  "nav": {
+    "home": "Home",
+    "market": "Market",
+    "search": "Search",
+    "upload": "Upload",
+    "user": "User",
+    "admin": "Admin",
+    "about": "About"
+  },
+  "hero": {
+    "title": "Make Ideas Touchable",
+    "subtitle": "High-Quality 3D Model Marketplace",
+    "desc": "10,000+ curated models. STL / OBJ / 3MF supported. Download and print instantly.",
+    "searchPlaceholder": "Search models, creators, tags...",
+    "ctaBrowse": "Browse",
+    "ctaLearn": "Learn More",
+    "enterHome": "Enter Home"
+  },
+  "sections": {
+    "hotModels": "Hot",
+    "freeModels": "Free",
+    "newModels": "New",
+    "vipModels": "VIP",
+    "categories": "Categories",
+    "features": "Features",
+    "about": "About",
+    "cta": "Start Your 3D Journey"
+  },
+  "footer": {
+    "models": "Models",
+    "services": "Services",
+    "support": "Support",
+    "legal": "Legal",
+    "copyright": "© 2026 PrintHub. All rights reserved."
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "models": "Models",
+    "orders": "Orders",
+    "users": "Users",
+    "settings": "Settings"
+  }
+}

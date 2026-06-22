@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>API Test</title></head>
+<body>
+<h1>PrintHub API 测试</h1>
+<div id="status">测试中...</div>
+<div id="result"></div>
+
+<script>
+var apiUrl = '/api/models?page_size=5';
+document.getElementById('status').textContent = '正在请求: ' + apiUrl;
+
+fetch(apiUrl)
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    document.getElementById('status').textContent = '请求成功! 共 ' + d.total + ' 个模型';
+    var html = '';
+    d.models.forEach(function(m) {
+      html += '<div style="border:1px solid #ccc;margin:10px;padding:10px;">';
+      html += '<strong>' + m.title + '</strong> | ' + m.author + ' | ¥' + m.price;
+      html += ' | file: ' + (m.file_path || 'none');
+      html += '</div>';
+    });
+    document.getElementById('result').innerHTML = html;
+  })
+  .catch(function(e) {
+    document.getElementById('status').textContent = '请求失败: ' + e.message;
+  });
+</script>
+</body></html>
