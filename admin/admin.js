@@ -2,7 +2,7 @@ async function api(path, options = {}) {
   let res;
   try {
     const headers = options.body instanceof FormData
-      ? { ...(options.headers || {}) }  // let browser set Content-Type with boundary
+      ? { ...(options.headers || {}) }
       : { 'Content-Type': 'application/json', ...(options.headers || {}) };
     res = await fetch(path, {
       credentials: 'same-origin',
@@ -10,7 +10,7 @@ async function api(path, options = {}) {
       ...options,
     });
   } catch (err) {
-    throw new Error('后台服务未启动：请双击“启动PrintHub.command”后再登录。');
+    throw new Error('后台服务未启动：请双击"启动PrintHub.command"后再登录。');
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data.ok === false) {
@@ -46,14 +46,11 @@ function statusLabel(status) {
 
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
 }
 
+// ====== Login Page ======
 async function initLoginPage() {
   const form = document.querySelector('[data-login-form]');
   if (!form) return;
@@ -74,6 +71,7 @@ async function initLoginPage() {
   });
 }
 
+// ====== Models Page ======
 async function initModelsPage() {
   const tableBody = document.querySelector('[data-model-list]');
   const count = document.querySelector('[data-model-count]');
@@ -82,6 +80,8 @@ async function initModelsPage() {
   const statusFilter = document.querySelector('[data-model-status]');
   if (!tableBody) return;
   await requireAdmin();
+
+  let editingId = null;
 
   async function loadModels() {
     const params = new URLSearchParams();
@@ -93,7 +93,7 @@ async function initModelsPage() {
       <tr data-model-id="${model.id}">
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
-            <div class="admin-table-img">${escapeHtml(model.image || '📦')}</div>
+            <span style="font-size:1.5rem;">${escapeHtml(model.image || '📦')}</span>
             <span>${escapeHtml(model.title)}</span>
           </div>
         </td>
@@ -109,7 +109,7 @@ async function initModelsPage() {
         <td>${statusLabel(model.status)}</td>
         <td>${escapeHtml((model.created_at || '').slice(0, 10))}</td>
         <td>
-          <button class="admin-table-action outline" type="button" disabled>编辑</button>
+          <button class="admin-table-action outline edit-btn" type="button" data-edit style="color:var(--purple);border-color:var(--purple);">✏️ 编辑</button>
           <button class="admin-table-action ${model.status === 'on' ? 'danger' : 'green'}" type="button" data-toggle-status>
             ${model.status === 'on' ? '下架' : '上架'}
           </button>
@@ -117,6 +117,28 @@ async function initModelsPage() {
       </tr>
     `).join('');
   }
+
+  // Edit button - populate form
+  tableBody.addEventListener('click', async (event) => {
+    const editBtn = event.target.closest('[data-edit]');
+    if (editBtn) {
+      const row = editBtn.closest('tr');
+      const id = row.dataset.modelId;
+      const data = await api(`/api/admin/models?q=&status=`);
+      const model = data.models.find(m => String(m.id) === String(id));
+      if (model && form) {
+        editingId = model.id;
+        form.title.value = model.title;
+        form.category.value = model.category;
+        form.price.value = model.price;
+        form.file_format.value = model.file_format;
+        form.image.value = model.image;
+        form.querySelector('button[type="submit"]').textContent = '💾 更新模型';
+        form.querySelector('button[type="submit"]').style.background = 'var(--purple)';
+        form.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  });
 
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -127,14 +149,19 @@ async function initModelsPage() {
       file_format: form.file_format.value,
       image: form.image.value,
     };
+    if (editingId) {
+      payload.id = editingId;
+    }
     await api('/api/admin/models', { method: 'POST', body: JSON.stringify(payload) });
     form.reset();
     form.image.value = '📦';
+    form.querySelector('button[type="submit"]').textContent = '+ 新增模型';
+    form.querySelector('button[type="submit"]').style.background = '';
+    editingId = null;
     await loadModels();
   });
 
   tableBody.addEventListener('click', async (event) => {
-    // Toggle status
     const statusBtn = event.target.closest('[data-toggle-status]');
     if (statusBtn) {
       const row = statusBtn.closest('tr');
@@ -147,7 +174,6 @@ async function initModelsPage() {
       await loadModels();
       return;
     }
-    // Upload file
     const uploadBtn = event.target.closest('[data-upload]');
     if (uploadBtn) {
       const row = uploadBtn.closest('tr');

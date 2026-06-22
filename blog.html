@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>博客 & 教程 - PrintHub 印模库</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.blog-container { max-width:900px; margin:0 auto; padding:40px 20px; }
+.blog-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+.blog-card { border:1px solid var(--border); border-radius:16px; overflow:hidden; background:var(--bg-card); transition:all 0.3s; cursor:pointer; }
+.blog-card:hover { border-color:var(--green); transform:translateY(-4px); box-shadow:0 8px 32px rgba(0,0,0,0.1); }
+.blog-card .img-wrap { height:160px; background:var(--bg-elevated); display:flex; align-items:center; justify-content:center; font-size:3rem; }
+.blog-card .body { padding:20px; }
+.blog-card h3 { margin:0 0 6px; font-size:1.1rem; }
+.blog-card p { color:var(--text-muted); font-size:0.82rem; margin:0; }
+@media (max-width:640px) { .blog-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<nav class="left-nav">
+    <a href="index.html" class="left-nav-top"><img class="site-logo-icon" src="assets/logo.png" alt="PrintHub"></a>
+    <a href="index.html" class="left-nav-item"><span class="icon">🏠</span><span class="label">首页</span></a>
+    <a href="home.html" class="left-nav-item"><span class="icon">🛒</span><span class="label">市场</span></a>
+    <a href="search.html" class="left-nav-item"><span class="icon">🔍</span><span class="label">搜索</span></a>
+    <a href="user.html" class="left-nav-item"><span class="icon">👤</span><span class="label">用户</span></a>
+</nav>
+<div class="top-bar">
+    <div class="top-bar-search-wrap"><a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a></div>
+    <button class="theme-toggle" onclick="Theme.toggle()" style="width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);cursor:pointer;">🌓</button>
+    <a href="user.html" class="top-bar-user">U</a>
+</div>
+<main class="main-wrap" style="padding-top:92px;padding-left:108px;">
+<section class="blog-container">
+    <h1 style="font-size:2rem;margin-bottom:8px;">博客 & <span style="color:var(--green);">打印指南</span></h1>
+    <p style="color:var(--text-muted);margin-bottom:32px;">3D 打印技巧、模型推荐、行业资讯</p>
+    <div class="blog-grid" id="blogList"></div>
+</section>
+</main>
+<script src="assets/js/main.js?v=10"></script>
+<script>
+const articles = [
+  {emoji:'🖨️',title:'新手入门：第一次3D打印全流程指南',desc:'从选购打印机到成功打印第一个模型，零基础也能快速上手。涵盖切片设置、材料选择、常见问题排查。'},
+  {emoji:'🔧',title:'PLA vs PETG vs ABS：三种常用耗材对比',desc:'详解三种最常用FDM耗材的特性、打印参数和适用场景，帮你选出最适合的材料。'},
+  {emoji:'📐',title:'支撑结构完全指南：何时用、怎么拆',desc:'学会判断模型是否需要支撑，掌握支撑设置技巧，告别难看的支撑痕。'},
+  {emoji:'🎨',title:'3D打印后处理技巧：打磨、上色、组装',desc:'让你的打印作品从"还行"到"惊艳"。打磨技巧、底漆喷涂、丙烯上色全流程。'},
+  {emoji:'📱',title:'实用模型推荐：10个提升桌面效率的3D打印配件',desc:'手机支架、线夹、收纳盒...最受欢迎的桌面效率工具模型推荐，全部可免费下载。'},
+  {emoji:'🎄',title:'节日限定：创意3D打印装饰合集',desc:'圣诞、春节、万圣节主题模型推荐。蛋糕插牌、装饰挂件、礼物标签免费下载。'},
+  {emoji:'⚙️',title:'机械模型打印指南：齿轮、轴承、活动件',desc:'如何成功打印可活动机械模型？公差设置、材料选择、装配技巧全解析。'},
+  {emoji:'🏠',title:'家居3D打印改造：20个实用模型推荐',desc:'从花盆到收纳，从挂钩到灯罩——用3D打印改造你的居住空间。'},
+];
+document.getElementById('blogList').innerHTML = articles.map(a => `
+  <div class="blog-card scroll-reveal">
+    <div class="img-wrap">${a.emoji}</div>
+    <div class="body">
+      <h3>${a.title}</h3>
+      <p>${a.desc}</p>
+    </div>
+  </div>
+`).join('');
+</script>
+</body>
+</html>

@@ -181,6 +181,16 @@
     var dlHref = hasFile ? '/api/models/' + model.id + '/download' : 'user.html';
     infoHtml += '<a href="' + dlHref + '" class="btn-buy" ' + (!hasFile ? '' : 'download') + '>' + (isFree ? (hasFile ? '免费下载' : '文件待上传') : '立即购买 · ' + formatPrice(price)) + '</a>';
     infoHtml += '<button class="btn-cart">🛒</button>';
+    infoHtml += '<div class="share-buttons" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">';
+    var shareUrl = encodeURIComponent(window.location.href);
+    var shareTitle = encodeURIComponent(model.title);
+    infoHtml += '<a href="https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '" target="_blank" rel="noopener" class="share-btn" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:0.72rem;text-decoration:none;color:var(--text-secondary);">📘 Facebook</a>';
+    infoHtml += '<a href="https://www.pinterest.com/pin/create/button/?url=' + shareUrl + '&description=' + shareTitle + '" target="_blank" rel="noopener" class="share-btn" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:0.72rem;text-decoration:none;color:var(--text-secondary);">📌 Pinterest</a>';
+    infoHtml += '<a href="https://www.tiktok.com/search?q=' + shareTitle + '" target="_blank" rel="noopener" class="share-btn" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:0.72rem;text-decoration:none;color:var(--text-secondary);">🎵 TikTok</a>';
+    infoHtml += '<button onclick="navigator.clipboard.writeText(window.location.href)" class="share-btn" style="padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:0.72rem;cursor:pointer;color:var(--text-secondary);background:none;">🔗 复制链接</button>';
+    infoHtml += '</div>';
+    // Real comments loading
+    infoHtml += '<div class="license-info" style="margin-top:20px;">';
     infoHtml += '</div>';
     infoHtml += '<div class="license-info">';
     infoHtml += '<h4>🔒 授权信息</h4>';
@@ -197,11 +207,18 @@
     infoHtml += '<div class="tab-content active" id="tab-desc"><div class="desc-text">';
     infoHtml += model.description ? '<p>' + model.description.replace(/\n/g, '</p><p>') + '</p>' : '<p>暂无描述。</p>';
     infoHtml += '</div></div>';
-    infoHtml += '<div class="tab-content" id="tab-reviews"><div class="review-item">';
-    infoHtml += '<div class="review-header"><div class="review-avatar">U</div><div class="review-info"><h5>用户</h5><span>近期</span></div></div>';
-    infoHtml += '<div class="review-stars">' + renderStars(model.rating) + '</div>';
-    infoHtml += '<div class="review-text">评分 ' + Number(model.rating||4.5).toFixed(1) + ' / 5.0 · ' + (model.rating_count||0) + ' 条评价</div>';
-    infoHtml += '</div></div>';
+    infoHtml += '<div class="tab-content" id="tab-reviews">';
+    infoHtml += '<div id="comments-list" style="display:flex;flex-direction:column;gap:12px;">';
+    infoHtml += '<div style="text-align:center;color:var(--text-muted);padding:20px;">加载评论中...</div>';
+    infoHtml += '</div>';
+    infoHtml += '<div style="margin-top:20px;padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;">';
+    infoHtml += '<h5 style="margin-bottom:10px;">发表评论</h5>';
+    infoHtml += '<form onsubmit="submitComment(event,' + model.id + ')" style="display:flex;flex-direction:column;gap:8px;">';
+    infoHtml += '<div style="display:flex;gap:8px;align-items:center;"><input name="user_name" placeholder="昵称" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;background:var(--bg);color:var(--text);"><select name="rating" style="padding:8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;background:var(--bg);color:var(--text);"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select></div>';
+    infoHtml += '<textarea name="content" placeholder="分享您的打印体验..." rows="3" required style="padding:8px;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;resize:vertical;background:var(--bg);color:var(--text);"></textarea>';
+    infoHtml += '<button type="submit" class="btn-buy" style="align-self:flex-start;font-size:0.8rem;padding:8px 20px;">发布评论</button>';
+    infoHtml += '</form></div>';
+    infoHtml += '</div>';
 
     document.querySelector('[data-detail-info]').innerHTML = infoHtml;
   }
@@ -222,6 +239,8 @@
       renderDetail(data.model);
       loadRelated(data.model.category);
       window.switchTab = switchTab;
+      // Load comments after model loaded
+      setTimeout(() => loadComments(modelId), 500);
     } catch(e) {
       document.querySelector('[data-detail-info]').innerHTML =
         '<div style="text-align:center;padding:60px;color:var(--text-muted);">模型加载失败: ' + e.message + '<br><a href="home.html">返回市场</a></div>';
@@ -230,6 +249,33 @@
   if (typeof PrintHub !== 'undefined' && PrintHub.api) { start(); }
   else { window.addEventListener('printhub-ready', start); }
 })();
+
+function renderStars(r) { var n=Math.round(Number(r||5)); return '★'.repeat(n)+'☆'.repeat(5-n); }
+async function loadComments(id) {
+  var list = document.getElementById('comments-list');
+  if (!list) return;
+  try {
+    var r = await fetch('/api/models/'+id+'/comments');
+    var d = await r.json();
+    if (!d.ok || !d.comments.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">暂无评论，来发表第一条吧！</div>'; return; }
+    list.innerHTML = d.comments.map(function(c){
+      return '<div class="review-item"><div class="review-header"><div class="review-avatar">'+(c.user_name||'?')[0]+'</div><div class="review-info"><h5>'+c.user_name+'</h5><span>'+c.created_at.slice(0,10)+'</span></div></div><div class="review-stars">'+renderStars(c.rating)+'</div><div class="review-text">'+c.content+'</div></div>';
+    }).join('');
+  } catch(e) { list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;">加载评论失败</div>'; }
+}
+async function submitComment(e, modelId) {
+  e.preventDefault();
+  var f = e.target;
+  try {
+    var r = await fetch('/api/models/'+modelId+'/comments', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_name:f.user_name.value, rating:Number(f.rating.value), content:f.content.value})
+    });
+    var d = await r.json();
+    if (d.ok) { f.content.value = ''; loadComments(modelId); alert('评论发布成功！'); }
+    else alert(d.error||'发布失败');
+  } catch(err) { alert('发布失败: '+err.message); }
+}
 </script>
 </body>
 </html>

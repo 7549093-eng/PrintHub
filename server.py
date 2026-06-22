@@ -146,6 +146,29 @@ def init_db():
             );
             CREATE INDEX IF NOT EXISTS idx_page_views_date ON page_views(created_at);
             CREATE INDEX IF NOT EXISTS idx_page_views_page ON page_views(page);
+            CREATE TABLE IF NOT EXISTS subscribers (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              email TEXT NOT NULL UNIQUE,
+              source TEXT DEFAULT 'website',
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS contacts (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              email TEXT NOT NULL,
+              subject TEXT DEFAULT '',
+              message TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS comments (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              model_id INTEGER NOT NULL,
+              user_name TEXT NOT NULL DEFAULT '匿名用户',
+              rating REAL NOT NULL DEFAULT 5,
+              content TEXT NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY(model_id) REFERENCES models(id)
+            );
             """
         )
         # Migrate model images from emoji to SVG
@@ -435,6 +458,9 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
         # --- user API ---
         if parsed.path == "/api/user/me":
             return self.handle_user_me()
+        if parsed.path.startswith("/api/models/") and parsed.path.endswith("/comments"):
+            model_id = parsed.path.split("/")[-2]
+            return self.handle_get_comments(model_id)
         # --- admin API ---
         if parsed.path == "/api/admin/me":
             admin = current_admin(self)
@@ -481,6 +507,13 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
             return self.handle_user_login()
         if parsed.path == "/api/user/logout":
             return self.handle_user_logout()
+        if parsed.path == "/api/subscribe":
+            return self.handle_subscribe()
+        if parsed.path == "/api/contact":
+            return self.handle_contact()
+        if parsed.path.startswith("/api/models/") and parsed.path.endswith("/comments"):
+            model_id = parsed.path.split("/")[-2]
+            return self.handle_post_comment(model_id)
         # --- admin API ---
         if parsed.path == "/api/admin/login":
             return self.handle_login()
@@ -1056,6 +1089,76 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
             "hourly": hourly,
             "referrers": referrers,
         })
+
+    # ============ SUBSCRIBE / CONTACT / COMMENTS ============
+
+    def handle_subscribe(self):
+        payload = read_json(self)
+        if payload is None:
+            return json_response(self, {"ok": False, "error": "请求格式错误"}, 400)
+        email = str(payload.get("email", "")).strip()
+        if not email or "@" not in email:
+            return json_response(self, {"ok": False, "error": "请输入有效邮箱"}, 400)
+        try:
+            with db() as conn:
+                conn.execute("INSERT OR IGNORE INTO subscribers (email) VALUES (?)", (email,))
+            return json_response(self, {"ok": True, "message": "订阅成功！"})
+        except:
+            return json_response(self, {"ok": False, "error": "订阅失败"}, 500)
+
+    def handle_contact(self):
+        payload = read_json(self)
+        if payload is None:
+            return json_response(self, {"ok": False, "error": "请求格式错误"}, 400)
+        name = str(payload.get("name", "")).strip()
+        email = str(payload.get("email", "")).strip()
+        subject = str(payload.get("subject", "")).strip()
+        message = str(payload.get("message", "")).strip()
+        if not name or not email or not message:
+            return json_response(self, {"ok": False, "error": "请填写必填项"}, 400)
+        with db() as conn:
+            conn.execute(
+                "INSERT INTO contacts (name, email, subject, message) VALUES (?, ?, ?, ?)",
+                (name, email, subject, message)
+            )
+        return json_response(self, {"ok": True, "message": "已收到您的消息，我们会尽快回复！"})
+
+    def handle_get_comments(self, model_id):
+        try: model_id = int(model_id)
+        except: return json_response(self, {"ok": True, "comments": []})
+        with db() as conn:
+            rows = [dict(r) for r in conn.execute(
+                "SELECT * FROM comments WHERE model_id = ? ORDER BY created_at DESC LIMIT 50",
+                (model_id,)
+            ).fetchall()]
+        return json_response(self, {"ok": True, "comments": rows})
+
+    def handle_post_comment(self, model_id):
+        payload = read_json(self)
+        if payload is None:
+            return json_response(self, {"ok": False, "error": "请求格式错误"}, 400)
+        user_name = str(payload.get("user_name", "匿名用户")).strip() or "匿名用户"
+        rating = float(payload.get("rating", 5))
+        content = str(payload.get("content", "")).strip()
+        if not content:
+            return json_response(self, {"ok": False, "error": "请输入评论内容"}, 400)
+        rating = max(1, min(5, rating))
+        with db() as conn:
+            conn.execute(
+                "INSERT INTO comments (model_id, user_name, rating, content) VALUES (?, ?, ?, ?)",
+                (model_id, user_name, rating, content)
+            )
+            # Update model average rating
+            avg = conn.execute(
+                "SELECT AVG(rating) AS r, COUNT(*) AS n FROM comments WHERE model_id = ?",
+                (model_id,)
+            ).fetchone()
+            if avg:
+                conn.execute(
+                    "UPDATE models SET rating = ?, rating_count = ? WHERE id = ?",
+                    (round(avg["r"] or 5, 1), avg["n"], model_id)
+                )
+        return json_response(self, {"ok": True, "message": "评论发布成功！"})
 
 
 if __name__ == "__main__":

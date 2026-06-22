@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常见问题 - PrintHub 印模库</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css?v=9">
+<style>
+.faq-container { max-width:800px; margin:0 auto; padding:40px 20px; }
+.faq-item { margin-bottom:16px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--bg-card); }
+.faq-q { padding:18px 24px; font-weight:700; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-size:1rem; }
+.faq-q:hover { color:var(--green); }
+.faq-q .arrow { transition:transform 0.3s; }
+.faq-q.open .arrow { transform:rotate(180deg); }
+.faq-a { padding:0 24px 18px; color:var(--text-secondary); font-size:0.9rem; line-height:1.8; display:none; }
+.faq-a.show { display:block; }
+</style>
+</head>
+<body>
+<nav class="left-nav">
+    <a href="index.html" class="left-nav-top"><img class="site-logo-icon" src="assets/logo.png" alt="PrintHub"></a>
+    <a href="index.html" class="left-nav-item"><span class="icon">🏠</span><span class="label">首页</span></a>
+    <a href="home.html" class="left-nav-item"><span class="icon">🛒</span><span class="label">市场</span></a>
+    <a href="search.html" class="left-nav-item"><span class="icon">🔍</span><span class="label">搜索</span></a>
+    <a href="user.html" class="left-nav-item"><span class="icon">👤</span><span class="label">用户</span></a>
+</nav>
+<div class="top-bar">
+    <div class="top-bar-search-wrap">
+        <a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a>
+    </div>
+    <a href="user.html" class="top-bar-user">U</a>
+</div>
+<main class="main-wrap" style="padding-top:92px;padding-left:108px;">
+<section class="faq-container">
+    <h1 style="font-size:2rem;margin-bottom:8px;">常见问题 <span style="color:var(--green);">FAQ</span></h1>
+    <p style="color:var(--text-muted);margin-bottom:32px;">关于下载、打印、授权的常见疑问</p>
+    <div class="faq-list" id="faqList"></div>
+</section>
+</main>
+<script src="assets/js/main.js?v=10"></script>
+<script>
+const faqs = [
+  {q:'模型下载后在哪里找到？',a:'登录后进入 <a href="user.html">用户中心</a>，在"已购模型"或"下载记录"中查看下载链接，也可从订单确认邮件中获取。'},
+  {q:'免费模型真的完全免费吗？',a:'是的！平台提供大量免费模型，无需支付任何费用即可下载。部分免费模型需注册登录后领取。'},
+  {q:'支持哪些3D打印格式？',a:'主要支持 STL、3MF、OBJ 格式，部分模型提供 STEP/STP 工程格式。每个模型页面标注了具体格式。'},
+  {q:'下载的模型可以商用吗？',a:'取决于授权类型。个人授权仅限个人使用，不可出售打印件。如需商业使用（出售打印件），请购买商业授权版本。'},
+  {q:'打印参数是什么？如何设置？',a:'每个模型详情页提供推荐打印参数（层高、填充、壁厚、温度等），可根据您的打印机和材料微调。'},
+  {q:'下载文件后打印失败怎么办？',a:'首先检查推荐参数设置，确认切片软件设置正确。如仍有问题，可通过联系表单提供详细信息，我们将协助排查。'},
+  {q:'如何申请定制模型？',a:'通过首页"联系我们"表单，描述您的需求（用途、尺寸、参考图等），我们将评估可行性并提供报价。'},
+  {q:'支持代打印服务吗？',a:'暂时通过定制服务渠道提供代打印。请在联系表单中选择"代打印服务"，注明所需材料、颜色、数量。'},
+  {q:'账号密码忘记了怎么办？',a:'目前请联系客服邮箱 contact@printhub3d.club，提供注册邮箱，我们将协助重置密码。'},
+  {q:'可以上传自己的模型出售吗？',a:'创作者入驻功能正在开发中。如果您有优质模型希望上架，请通过联系表单与我们沟通。'},
+];
+document.getElementById('faqList').innerHTML = faqs.map((f,i) => `
+  <div class="faq-item">
+    <div class="faq-q" onclick="this.parentElement.querySelector('.faq-a').classList.toggle('show');this.classList.toggle('open')">
+      ${f.q}<span class="arrow">▼</span>
+    </div>
+    <div class="faq-a">${f.a}</div>
+  </div>
+`).join('');
+</script>
+</body>
+</html>

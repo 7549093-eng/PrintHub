@@ -285,29 +285,52 @@
     </div>
     <div class="contact-grid">
         <div class="contact-card">
-            <div class="contact-icon-wrap"><span class="contact-icon">&#x1f4e7;</span></div>
+            <div class="contact-icon-wrap"><span class="contact-icon">📧</span></div>
             <h3>邮箱联系</h3>
-            <p>商务合作、授权咨询、技术支持</p>
+            <p>商务合作、授权咨询</p>
             <a href="mailto:contact@printhub3d.club" class="contact-link">contact@printhub3d.club</a>
         </div>
         <div class="contact-card">
-            <div class="contact-icon-wrap"><span class="contact-icon">&#x1f4ac;</span></div>
+            <div class="contact-icon-wrap"><span class="contact-icon">💬</span></div>
             <h3>微信咨询</h3>
-            <p>模型定制、打印服务咨询</p>
+            <p>模型定制、打印服务</p>
             <span class="contact-link">PrintHub_3D</span>
         </div>
         <div class="contact-card">
-            <div class="contact-icon-wrap"><span class="contact-icon">&#x1f550;</span></div>
-            <h3>响应时间</h3>
-            <p>工作日 9:00-18:00</p>
-            <span class="contact-link">24 小时内回复</span>
+            <div class="contact-icon-wrap"><span class="contact-icon">❓</span></div>
+            <h3>常见问题</h3>
+            <p>下载、打印、授权说明</p>
+            <a href="faq.html" class="contact-link">查看 FAQ →</a>
         </div>
     </div>
-</section>
+    <div style="max-width:600px;margin:40px auto 0;">
+        <h3 style="text-align:center;margin-bottom:16px;">发送消息</h3>
+        <form class="contact-form" onsubmit="submitContact(event)" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <input type="text" name="name" placeholder="您的姓名" required style="flex:1;min-width:150px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg-card);color:var(--text);">
+                <input type="email" name="email" placeholder="您的邮箱" required style="flex:1;min-width:150px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg-card);color:var(--text);">
+            </div>
+            <input type="text" name="subject" placeholder="主题（可选）" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg-card);color:var(--text);">
+            <textarea name="message" placeholder="请描述您的需求..." rows="4" required style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;resize:vertical;background:var(--bg-card);color:var(--text);"></textarea>
+            <button type="submit" class="btn-primary" style="padding:10px 24px;background:var(--green);color:#111;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">发送消息</button>
+            <p class="contact-msg" style="text-align:center;font-size:0.85rem;color:var(--green);display:none;"></p>
+        </form>
+    </div>
+</section>n>
 
 </main>
 
 <!-- Footer -->
+
+<section style="background:var(--bg-elevated);border-radius:16px;max-width:600px;margin:0 auto 40px;padding:32px;text-align:center;">
+    <h3 style="margin-bottom:8px;">📬 订阅我们的邮件</h3>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">第一时间获取新品上架、免费模型和打印技巧</p>
+    <form onsubmit="submitSubscribe(event)" style="display:flex;gap:8px;max-width:400px;margin:0 auto;">
+        <input type="email" name="sub_email" placeholder="输入您的邮箱" required style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text);">
+        <button type="submit" class="btn-primary" style="padding:10px 20px;background:var(--green);color:#111;border:none;border-radius:8px;font-weight:700;cursor:pointer;white-space:nowrap;">订阅</button>
+    </form>
+    <p class="sub-msg" style="margin-top:8px;font-size:0.8rem;color:var(--green);display:none;"></p>
+</section>
 <footer>
     <div class="footer-grid">
         <div><div class="footer-brand"><img class="footer-logo" src="assets/logo.png" alt="PrintHub"></div><p class="footer-desc">高质量 3D 模型下载平台，提供 STL / OBJ / 3MF 格式模型，支持个人打印、商业授权、DIY 创作、代打印与定制改模服务。</p></div>
@@ -357,6 +380,35 @@
   load('free',{price_max:0,sort:'hot',page_size:4});
   load('new',{sort:'newest',page_size:4});
 })();
+</script>
+
+<script>
+async function submitContact(e) {
+  e.preventDefault();
+  const f = e.target;
+  const msg = f.querySelector('.contact-msg');
+  try {
+    const r = await fetch('/api/contact', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.name.value,email:f.email.value,subject:f.subject.value,message:f.message.value})});
+    const d = await r.json();
+    msg.textContent = d.message || '发送成功！';
+    msg.style.display = 'block';
+    if (d.ok) f.reset();
+  } catch(err) { msg.textContent = '发送失败，请重试'; msg.style.display = 'block'; }
+  setTimeout(() => msg.style.display = 'none', 4000);
+}
+async function submitSubscribe(e) {
+  e.preventDefault();
+  const msg = document.querySelector('.sub-msg');
+  const email = e.target.sub_email.value;
+  try {
+    const r = await fetch('/api/subscribe', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const d = await r.json();
+    msg.textContent = d.message || '订阅成功！';
+    msg.style.display = 'block';
+    if (d.ok) e.target.reset();
+  } catch(err) { msg.textContent = '订阅失败'; msg.style.display = 'block'; }
+  setTimeout(() => msg.style.display = 'none', 4000);
+}
 </script>
 </body>
 </html>
