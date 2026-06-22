@@ -60,6 +60,7 @@
 
 <!-- Top Bar (Search + Lang) -->
 <div class="top-bar">
+    <button class="mobile-nav-toggle" type="button" onclick="toggleMobileNav()" aria-label="菜单"><span></span><span></span><span></span></button>
     <div class="top-bar-search-wrap">
         <a href="index.html" class="top-bar-logo"><img class="site-logo-wordmark" src="assets/logo.png" alt="PrintHub"></a>
         <input type="text" class="top-bar-search" data-i18n-placeholder="hero.searchPlaceholder" placeholder="搜索模型、创作者、标签...">
@@ -83,6 +84,7 @@
         </div>
     </div>
     <a href="user.html" class="top-bar-user">U</a>
+    <button class="theme-toggle" type="button" onclick="Theme.toggle()" aria-label="切换主题" title="深色/浅色模式"><span class="theme-toggle-icon">🌓</span></button>
 </div>
 
 <!-- Floating Upload -->
@@ -274,28 +276,31 @@
     </div>
 </section>
 
-<section class="section" id="contact" style="text-align:center;max-width:600px;margin:0 auto 60px;">
-    <div class="section-title-wrap" style="margin-bottom:24px;">
-        <h2 class="section-title">联系<span class="accent">我们</span></h2>
+<section class="section contact-section" id="contact">
+    <div class="section-header" style="margin-bottom:32px;">
+        <div class="section-title-wrap">
+            <h2 class="section-title">联系<span class="accent">我们</span></h2>
+            <span class="section-tag">CONTACT</span>
+        </div>
     </div>
-    <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;font-family:'Noto Sans SC',sans-serif;">
-        如需定制开发、商务合作或模型授权咨询，欢迎通过以下方式联系我们。
-    </p>
-    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:200px;">
-            <div style="font-size:1.5rem;margin-bottom:8px;">📧</div>
-            <div style="font-weight:700;margin-bottom:4px;">邮箱</div>
-            <div style="color:var(--green);font-size:0.85rem;">contact@printhub3d.com</div>
+    <div class="contact-grid">
+        <div class="contact-card">
+            <div class="contact-icon-wrap"><span class="contact-icon">&#x1f4e7;</span></div>
+            <h3>邮箱联系</h3>
+            <p>商务合作、授权咨询、技术支持</p>
+            <a href="mailto:contact@printhub3d.club" class="contact-link">contact@printhub3d.club</a>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:200px;">
-            <div style="font-size:1.5rem;margin-bottom:8px;">💬</div>
-            <div style="font-weight:700;margin-bottom:4px;">微信</div>
-            <div style="color:var(--green);font-size:0.85rem;">PrintHub_3D</div>
+        <div class="contact-card">
+            <div class="contact-icon-wrap"><span class="contact-icon">&#x1f4ac;</span></div>
+            <h3>微信咨询</h3>
+            <p>模型定制、打印服务咨询</p>
+            <span class="contact-link">PrintHub_3D</span>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:200px;">
-            <div style="font-size:1.5rem;margin-bottom:8px;">🕐</div>
-            <div style="font-weight:700;margin-bottom:4px;">响应时间</div>
-            <div style="color:var(--green);font-size:0.85rem;">24 小时内回复</div>
+        <div class="contact-card">
+            <div class="contact-icon-wrap"><span class="contact-icon">&#x1f550;</span></div>
+            <h3>响应时间</h3>
+            <p>工作日 9:00-18:00</p>
+            <span class="contact-link">24 小时内回复</span>
         </div>
     </div>
 </section>

@@ -428,6 +428,15 @@ function toggleLangDropdown() {
   globe?.setAttribute('aria-expanded', d.classList.contains('show') ? 'true' : 'false');
 }
 
+// Mobile nav toggle
+function toggleMobileNav() {
+  const nav = document.querySelector('.left-nav');
+  const btn = document.querySelector('.mobile-nav-toggle');
+  if (!nav || !btn) return;
+  nav.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
 // Close lang dropdown when clicking outside
 document.addEventListener('click', (e) => {
   const dd = document.getElementById('langDropdown');
@@ -482,7 +491,8 @@ const PrintHub = {
     const price = Number(model.price || 0);
     const priceClass = price <= 0 ? 'free' : '';
     const priceLabel = this.formatPrice(price);
-    const emoji = model.image || this.categoryEmoji(model.category);
+    const hasSvgImg = model.image && (model.image.startsWith('assets/') || model.image.startsWith('data/'));
+        const emoji = (!hasSvgImg) ? (model.image || this.categoryEmoji(model.category)) : '';
     const tags = (model.tags || '').split(',').map(t => t.trim()).filter(Boolean);
     const isFree = price <= 0;
     const isNew = tags.includes('新品');
@@ -491,7 +501,7 @@ const PrintHub = {
     return `
       <a href="model.html?id=${model.id}" class="model-card scroll-reveal">
         <div class="img-wrap">
-          <div class="placeholder">${emoji}</div>
+          ${hasSvgImg ? `<img src="${model.image}" style="width:100%;height:100%;object-fit:cover;" alt="">` : `<div class="placeholder">${emoji}</div>`}
           ${(isFree || isNew || isVip) ? `<div class="badges">
             ${isFree ? '<span class="badge badge-free">免费</span>' : ''}
             ${isNew ? '<span class="badge badge-new">新品</span>' : ''}
