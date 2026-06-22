@@ -110,7 +110,31 @@ def init_db():
               tags TEXT NOT NULL DEFAULT '',
               license_type TEXT NOT NULL DEFAULT 'personal',
               print_params TEXT NOT NULL DEFAULT '{}',
+              display_order INTEGER NOT NULL DEFAULT 0,
               created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS orders (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER,
+              model_id INTEGER,
+              amount REAL NOT NULL DEFAULT 0,
+              status TEXT NOT NULL DEFAULT 'completed',
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY(user_id) REFERENCES users(id),
+              FOREIGN KEY(model_id) REFERENCES models(id)
+            );
+            CREATE TABLE IF NOT EXISTS favorites (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL,
+              model_id INTEGER NOT NULL,
+              created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY(user_id) REFERENCES users(id),
+              FOREIGN KEY(model_id) REFERENCES models(id),
+              UNIQUE(user_id, model_id)
+            );
+            CREATE TABLE IF NOT EXISTS site_settings (
+              key TEXT PRIMARY KEY,
+              value TEXT NOT NULL DEFAULT ''
             );
             """
         )
@@ -389,10 +413,26 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/admin/me":
             admin = current_admin(self)
             return json_response(self, {"ok": True, "admin": admin})
+        if parsed.path == "/api/admin/stats":
+            if not require_admin(self):
+                return
+            return self.handle_admin_stats()
         if parsed.path == "/api/admin/models":
             if not require_admin(self):
                 return
             return self.handle_list_models()
+        if parsed.path == "/api/admin/orders":
+            if not require_admin(self):
+                return
+            return self.handle_admin_orders()
+        if parsed.path == "/api/admin/users":
+            if not require_admin(self):
+                return
+            return self.handle_admin_users()
+        if parsed.path == "/api/admin/settings":
+            if not require_admin(self):
+                return
+            return self.handle_get_settings()
         if parsed.path.startswith("/admin/") and parsed.path != "/admin/index.html":
             if not current_admin(self):
                 self.send_response(302)
@@ -429,6 +469,15 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
                 return
             model_id = parsed.path.split("/")[-2]
             return self.handle_upload_file(model_id)
+        if parsed.path.startswith("/api/admin/orders/") and parsed.path.endswith("/status"):
+            if not require_admin(self):
+                return
+            order_id = parsed.path.split("/")[-2]
+            return self.handle_update_order_status(order_id)
+        if parsed.path == "/api/admin/settings":
+            if not require_admin(self):
+                return
+            return self.handle_save_settings()
         return json_response(self, {"ok": False, "error": "接口不存在"}, 404)
 
     def handle_login(self):
@@ -742,7 +791,7 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
         return json_response(self, {"ok": True, "file_path": rel_path, "filename": filename, "size": len(file_info["data"])})
 
     def handle_download_model(self, model_id):
-        """Download a model file. Increments download count."""
+        """Download a model file. Increments download count. Requires login for paid models."""
         try:
             model_id = int(model_id)
         except ValueError:
@@ -755,6 +804,20 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
             return json_response(self, {"ok": False, "error": "模型不存在"}, 404)
         if not model["file_path"]:
             return json_response(self, {"ok": False, "error": "文件尚未上传"}, 404)
+
+        # Check download permission for paid models
+        if model["price"] > 0:
+            user = current_user(self)
+            if not user:
+                return json_response(self, {"ok": False, "error": "付费模型需要登录后下载", "require_login": True}, 401)
+            # Check if user has purchased this model
+            with db() as conn:
+                purchase = conn.execute(
+                    "SELECT id FROM orders WHERE user_id = ? AND model_id = ? AND status = 'completed'",
+                    (user["id"], model_id)
+                ).fetchone()
+            if not purchase:
+                return json_response(self, {"ok": False, "error": "请先购买后再下载", "require_payment": True}, 402)
 
         full_path = ROOT / model["file_path"]
         if not full_path.exists():
@@ -780,6 +843,121 @@ class PrintHubHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(file_data)
+
+
+    # ============ ADMIN DASHBOARD ============
+
+    def handle_admin_stats(self):
+        with db() as conn:
+            model_count = conn.execute("SELECT COUNT(*) AS n FROM models").fetchone()["n"]
+            online_count = conn.execute("SELECT COUNT(*) AS n FROM models WHERE status = 'on'").fetchone()["n"]
+            user_count = conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]
+            order_count = conn.execute("SELECT COUNT(*) AS n FROM orders").fetchone()["n"]
+            total_downloads = conn.execute("SELECT COALESCE(SUM(downloads), 0) AS n FROM models").fetchone()["n"]
+            total_revenue = conn.execute("SELECT COALESCE(SUM(amount), 0) AS n FROM orders WHERE status = 'completed'").fetchone()["n"]
+            # Top categories
+            cats = [dict(r) for r in conn.execute(
+                "SELECT category, COUNT(*) AS n FROM models WHERE status = 'on' GROUP BY category ORDER BY n DESC LIMIT 6"
+            ).fetchall()]
+            # Recent orders
+            recent = [dict(r) for r in conn.execute(
+                "SELECT o.*, u.username, m.title AS model_title FROM orders o LEFT JOIN users u ON o.user_id = u.id LEFT JOIN models m ON o.model_id = m.id ORDER BY o.created_at DESC LIMIT 8"
+            ).fetchall()]
+            # Monthly stats (last 7 days simplified)
+            import datetime
+            today = datetime.date.today()
+            daily = []
+            for i in range(6, -1, -1):
+                d = today - datetime.timedelta(days=i)
+                cnt = conn.execute(
+                    "SELECT COUNT(*) AS n FROM orders WHERE date(created_at) = ?", (d.isoformat(),)
+                ).fetchone()["n"]
+                dl = conn.execute(
+                    "SELECT COUNT(*) AS n FROM models WHERE date(created_at) <= ?", (d.isoformat(),)
+                ).fetchone()["n"]
+                daily.append({"date": d.isoformat(), "orders": cnt, "downloads": dl})
+        return json_response(self, {
+            "ok": True,
+            "model_count": model_count, "online_count": online_count,
+            "user_count": user_count, "order_count": order_count,
+            "total_downloads": total_downloads, "total_revenue": total_revenue,
+            "categories": cats, "recent_orders": recent, "daily": daily,
+        })
+
+    # ============ ADMIN ORDERS ============
+
+    def handle_admin_orders(self):
+        q = self._parse_query()
+        status = (q.get("status", [""])[0] or "").strip()
+        page = int(q.get("page", ["1"])[0] or 1)
+        page_size = int(q.get("page_size", ["20"])[0] or 20)
+        where = []
+        args = []
+        if status:
+            where.append("o.status = ?")
+            args.append(status)
+        where_clause = ("WHERE " + " AND ".join(where)) if where else ""
+        offset = max(0, (page - 1) * page_size)
+        with db() as conn:
+            total = conn.execute(f"SELECT COUNT(*) AS n FROM orders o {where_clause}", args).fetchone()["n"]
+            rows = [dict(r) for r in conn.execute(
+                f"SELECT o.*, u.username, m.title AS model_title FROM orders o LEFT JOIN users u ON o.user_id = u.id LEFT JOIN models m ON o.model_id = m.id {where_clause} ORDER BY o.created_at DESC LIMIT ? OFFSET ?",
+                args + [page_size, offset]
+            ).fetchall()]
+        return json_response(self, {"ok": True, "orders": rows, "total": total, "page": page, "page_size": page_size})
+
+    def handle_update_order_status(self, order_id):
+        payload = read_json(self)
+        if payload is None:
+            return json_response(self, {"ok": False, "error": "请求格式错误"}, 400)
+        new_status = str(payload.get("status", "")).strip()
+        if new_status not in {"completed", "processing", "refunded", "cancelled"}:
+            return json_response(self, {"ok": False, "error": "状态无效"}, 400)
+        with db() as conn:
+            conn.execute("UPDATE orders SET status = ? WHERE id = ?", (new_status, order_id))
+            row = conn.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+        if not row:
+            return json_response(self, {"ok": False, "error": "订单不存在"}, 404)
+        return json_response(self, {"ok": True, "order": dict(row)})
+
+    # ============ ADMIN USERS ============
+
+    def handle_admin_users(self):
+        q = self._parse_query()
+        page = int(q.get("page", ["1"])[0] or 1)
+        page_size = int(q.get("page_size", ["20"])[0] or 20)
+        offset = max(0, (page - 1) * page_size)
+        with db() as conn:
+            total = conn.execute("SELECT COUNT(*) AS n FROM users").fetchone()["n"]
+            rows = []
+            for r in conn.execute(
+                "SELECT u.*, (SELECT COUNT(*) FROM orders WHERE user_id = u.id AND status = 'completed') AS order_count FROM users u ORDER BY u.created_at DESC LIMIT ? OFFSET ?",
+                (page_size, offset)
+            ).fetchall():
+                d = dict(r)
+                rows.append(d)
+        return json_response(self, {"ok": True, "users": rows, "total": total, "page": page})
+
+    # ============ SITE SETTINGS (homepage content) ============
+
+    def handle_get_settings(self):
+        with db() as conn:
+            rows = conn.execute("SELECT key, value FROM site_settings").fetchall()
+        settings = {r["key"]: r["value"] for r in rows}
+        return json_response(self, {"ok": True, "settings": settings})
+
+    def handle_save_settings(self):
+        payload = read_json(self)
+        if payload is None:
+            return json_response(self, {"ok": False, "error": "请求格式错误"}, 400)
+        with db() as conn:
+            for key, value in payload.items():
+                if isinstance(value, str):
+                    conn.execute(
+                        "INSERT INTO site_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                        (key, value)
+                    )
+        return json_response(self, {"ok": True})
 
 
 if __name__ == "__main__":

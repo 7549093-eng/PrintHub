@@ -3,56 +3,41 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>用户管理 - PrintHub Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=6">
+<link rel="stylesheet" href="admin.css?v=7">
 </head>
 <body class="admin-body">
 <aside class="admin-sidebar">
-    <div class="admin-sidebar-top">
-        <a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a>
-    </div>
-    <div class="admin-sidebar-user">
-        <div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div>
-        <div class="info"><h4>Admin</h4><p>超级管理员</p></div>
-    </div>
+    <div class="admin-sidebar-top"><a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a></div>
+    <div class="admin-sidebar-user"><div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div><div class="info"><h4>Admin</h4><p>管理员</p></div></div>
     <nav class="admin-menu">
-        <a href="dashboard.html" class="admin-menu-item" id="menu-dashboard"><span class="icon">📊</span>数据面板</a>
-        <a href="models.html" class="admin-menu-item" id="menu-models"><span class="icon">🧸</span>模型管理</a>
-        <a href="orders.html" class="admin-menu-item" id="menu-orders"><span class="icon">📋</span>订单管理 <span class="badge">5</span></a>
-        <a href="users.html" class="admin-menu-item" id="menu-users"><span class="icon">👤</span>用户管理</a>
-        <a href="settings.html" class="admin-menu-item" id="menu-settings"><span class="icon">⚙️</span>系统设置</a>
+        <a href="dashboard.html" class="admin-menu-item"><span class="icon">📊</span>数据面板</a>
+        <a href="models.html" class="admin-menu-item"><span class="icon">🧸</span>模型管理</a>
+        <a href="orders.html" class="admin-menu-item"><span class="icon">📋</span>订单管理</a>
+        <a href="users.html" class="admin-menu-item active"><span class="icon">👤</span>用户管理</a>
+        <a href="settings.html" class="admin-menu-item"><span class="icon">⚙️</span>主页编辑</a>
     </nav>
-    <div class="admin-sidebar-bottom">
-        <a href="../index.html"><span>←</span> 返回前台</a><a href="#" data-logout><span>×</span> 退出登录</a>
-    </div>
+    <div class="admin-sidebar-bottom"><a href="../index.html"><span>←</span> 返回前台</a><a href="#" onclick="doLogout()"><span>×</span> 退出</a></div>
 </aside>
 <div class="admin-main">
-    <header class="admin-header">
-        <h1>用户管理</h1>
-        <div class="admin-header-actions">
-            <div class="admin-filter-bar" style="margin-bottom:0;">
-                <input type="text" placeholder="搜索用户...">
-                <select><option>全部用户</option><option>VIP会员</option><option>普通用户</option><option>创作者</option></select>
-            </div>
-        </div>
-    </header>
+    <header class="admin-header"><h1>👤 用户管理</h1></header>
     <div class="admin-content">
-        <div class="admin-table-wrap">
-            <div class="admin-table-header">
-                <h3>用户列表</h3>
-                <span style="color:var(--text-muted);font-size:0.78rem;">共 52,430 个用户</span>
-            </div>
-            <table class="admin-table">
-                <tr><th>用户</th><th>邮箱</th><th>类型</th><th>已购</th><th>下载</th><th>注册日期</th><th>操作</th></tr>
-                <tr><td>User3D</td><td>user3d@example.com</td><td>VIP</td><td>42</td><td>128</td><td>2025-08-15</td><td><button class="admin-table-action outline">查看</button></td></tr>
-                <tr><td>MakerMike</td><td>mike@example.com</td><td>VIP</td><td>86</td><td>240</td><td>2025-06-20</td><td><button class="admin-table-action outline">查看</button></td></tr>
-                <tr><td>Sarah3D</td><td>sarah@example.com</td><td>普通</td><td>12</td><td>45</td><td>2026-01-10</td><td><button class="admin-table-action outline">查看</button></td></tr>
-                <tr><td>ArtMaker</td><td>art@example.com</td><td>创作者</td><td>0</td><td>0</td><td>2025-03-05</td><td><button class="admin-table-action outline">查看</button></td></tr>
-                <tr><td>EngineerX</td><td>eng@example.com</td><td>创作者</td><td>0</td><td>0</td><td>2025-04-12</td><td><button class="admin-table-action outline">查看</button></td></tr>
-            </table>
-        </div>
+        <table class="admin-table"><thead><tr><th>ID</th><th>用户名</th><th>邮箱</th><th>购买数</th><th>注册时间</th></tr></thead><tbody id="users-list"><tr><td colspan="5" style="text-align:center;">加载中...</td></tr></tbody></table>
+        <div style="margin-top:12px;text-align:center;font-size:0.78rem;color:var(--text-muted);" id="page-info"></div>
     </div>
 </div>
-<script>document.getElementById('menu-users').classList.add('active');</script>
-<script src="admin.js?v=6"></script>
+<script>
+let page = 1;
+async function loadUsers() {
+    const r = await fetch(`/api/admin/users?page=${page}`, {credentials:'same-origin'});
+    const d = await r.json();
+    if (!d.ok) return alert(d.error||'加载失败');
+    document.getElementById('users-list').innerHTML = d.users.length ? d.users.map(u =>
+        `<tr><td>#${u.id}</td><td><strong>${u.username||'-'}</strong></td><td>${u.email||'-'}</td><td>${u.order_count||0}</td><td>${(u.created_at||'').slice(0,10)}</td></tr>`
+    ).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">暂无用户</td></tr>';
+    document.getElementById('page-info').textContent = `共 ${d.total} 个用户`;
+}
+async function doLogout() { await fetch('/api/admin/logout',{method:'POST',credentials:'same-origin'}); location.href='index.html'; }
+loadUsers();
+</script>
 </body>
 </html>

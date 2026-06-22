@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: printhub
+    runtime: python
+    plan: free
+    buildCommand: ""
+    startCommand: python server.py

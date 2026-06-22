@@ -3,71 +3,46 @@
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>订单管理 - PrintHub Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css?v=6">
+<link rel="stylesheet" href="admin.css?v=7">
 </head>
 <body class="admin-body">
 <aside class="admin-sidebar">
-    <div class="admin-sidebar-top">
-        <a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a>
-    </div>
-    <div class="admin-sidebar-user">
-        <div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div>
-        <div class="info"><h4>Admin</h4><p>超级管理员</p></div>
-    </div>
+    <div class="admin-sidebar-top"><a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a></div>
+    <div class="admin-sidebar-user"><div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div><div class="info"><h4>Admin</h4><p>管理员</p></div></div>
     <nav class="admin-menu">
-        <a href="dashboard.html" class="admin-menu-item" id="menu-dashboard"><span class="icon">📊</span>数据面板</a>
-        <a href="models.html" class="admin-menu-item" id="menu-models"><span class="icon">🧸</span>模型管理</a>
-        <a href="orders.html" class="admin-menu-item" id="menu-orders"><span class="icon">📋</span>订单管理 <span class="badge">5</span></a>
-        <a href="users.html" class="admin-menu-item" id="menu-users"><span class="icon">👤</span>用户管理</a>
-        <a href="settings.html" class="admin-menu-item" id="menu-settings"><span class="icon">⚙️</span>系统设置</a>
+        <a href="dashboard.html" class="admin-menu-item"><span class="icon">📊</span>数据面板</a>
+        <a href="models.html" class="admin-menu-item"><span class="icon">🧸</span>模型管理</a>
+        <a href="orders.html" class="admin-menu-item active"><span class="icon">📋</span>订单管理</a>
+        <a href="users.html" class="admin-menu-item"><span class="icon">👤</span>用户管理</a>
+        <a href="settings.html" class="admin-menu-item"><span class="icon">⚙️</span>主页编辑</a>
     </nav>
-    <div class="admin-sidebar-bottom">
-        <a href="../index.html"><span>←</span> 返回前台</a><a href="#" data-logout><span>×</span> 退出登录</a>
-    </div>
+    <div class="admin-sidebar-bottom"><a href="../index.html"><span>←</span> 返回前台</a><a href="#" onclick="doLogout()"><span>×</span> 退出</a></div>
 </aside>
 <div class="admin-main">
-    <header class="admin-header">
-        <h1>订单管理</h1>
-        <div class="admin-header-actions">
-            <div class="admin-filter-bar" style="margin-bottom:0;">
-                <input type="text" placeholder="搜索订单号...">
-                <select><option>全部状态</option><option>已完成</option><option>处理中</option><option>已退款</option></select>
-                <select><option>全部类型</option><option>模型购买</option><option>会员订阅</option><option>点数充值</option></select>
-            </div>
-            <a href="#" class="admin-btn">导出数据</a>
-        </div>
-    </header>
+    <header class="admin-header"><h1>📋 订单管理</h1><div class="admin-header-actions"><select id="status-filter" onchange="loadOrders()"><option value="">全部状态</option><option value="completed">已完成</option><option value="processing">处理中</option><option value="refunded">已退款</option><option value="cancelled">已取消</option></select></div></header>
     <div class="admin-content">
-        <div class="admin-table-wrap">
-            <div class="admin-table-header">
-                <h3>订单列表</h3>
-                <span style="color:var(--text-muted);font-size:0.78rem;">共 3,856 个订单</span>
-            </div>
-            <table class="admin-table">
-                <tr><th>订单号</th><th>用户</th><th>类型</th><th>内容</th><th>金额</th><th>状态</th><th>日期</th><th>操作</th></tr>
-                <tr><td>#20260621001</td><td>User3D</td><td>模型购买</td><td>可活动关节小熊</td><td>免费</td><td><span class="admin-table-status status-success">已完成</span></td><td>2026-06-21 14:32</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action danger">退款</button></td></tr>
-                <tr><td>#20260621002</td><td>MakerMike</td><td>模型购买</td><td>行星齿轮减速箱</td><td>¥35</td><td><span class="admin-table-status status-success">已完成</span></td><td>2026-06-21 13:15</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action danger">退款</button></td></tr>
-                <tr><td>#20260621003</td><td>Sarah3D</td><td>会员订阅</td><td>VIP 年付会员</td><td>¥299</td><td><span class="admin-table-status status-success">已完成</span></td><td>2026-06-21 11:48</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action danger">退款</button></td></tr>
-                <tr><td>#20260621004</td><td>JoePrint</td><td>代打印</td><td>机械小恐龙 × 2</td><td>¥88</td><td><span class="admin-table-status status-pending">处理中</span></td><td>2026-06-21 10:22</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action green">完成</button></td></tr>
-                <tr><td>#20260621005</td><td>DesignFan</td><td>点数充值</td><td>500 点数</td><td>¥50</td><td><span class="admin-table-status status-success">已完成</span></td><td>2026-06-21 09:05</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action danger">退款</button></td></tr>
-                <tr><td>#20260620006</td><td>Tech3D</td><td>模型购买</td><td>Voron 2.4 改装件</td><td>¥58</td><td><span class="admin-table-status status-refunded">已退款</span></td><td>2026-06-20 16:40</td><td><button class="admin-table-action outline">查看</button></td></tr>
-                <tr><td>#20260620007</td><td>Holiday3D</td><td>模型购买</td><td>圣诞树旋转音乐盒</td><td>¥28</td><td><span class="admin-table-status status-success">已完成</span></td><td>2026-06-20 14:12</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action danger">退款</button></td></tr>
-                <tr><td>#20260620008</td><td>ArtFlow</td><td>模型购买</td><td>螺旋无限花瓶</td><td>¥22</td><td><span class="admin-table-status status-pending">处理中</span></td><td>2026-06-20 12:30</td><td><button class="admin-table-action outline">查看</button><button class="admin-table-action green">完成</button></td></tr>
-            </table>
-            <div class="admin-pagination">
-                <a href="#" class="admin-page-btn" style="opacity:0.4;pointer-events:none;">←</a>
-                <a href="#" class="admin-page-btn active">1</a>
-                <a href="#" class="admin-page-btn">2</a>
-                <a href="#" class="admin-page-btn">3</a>
-                <a href="#" class="admin-page-btn">4</a>
-                <span style="color:var(--text-muted);font-size:0.82rem;">...</span>
-                <a href="#" class="admin-page-btn">48</a>
-                <a href="#" class="admin-page-btn">→</a>
-            </div>
-        </div>
+        <table class="admin-table"><thead><tr><th>ID</th><th>用户</th><th>模型</th><th>金额</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="orders-list"><tr><td colspan="7" style="text-align:center;">加载中...</td></tr></tbody></table>
+        <div style="margin-top:12px;text-align:center;color:var(--text-muted);font-size:0.78rem;" id="page-info"></div>
     </div>
 </div>
-<script>document.getElementById('menu-orders').classList.add('active');</script>
-<script src="admin.js?v=6"></script>
+<script>
+let page = 1;
+async function loadOrders() {
+    const status = document.getElementById('status-filter').value;
+    const r = await fetch(`/api/admin/orders?status=${status}&page=${page}`, {credentials:'same-origin'});
+    const d = await r.json();
+    if (!d.ok) return alert(d.error||'加载失败');
+    document.getElementById('orders-list').innerHTML = d.orders.length ? d.orders.map(o =>
+        `<tr><td>#${o.id}</td><td>${o.username||'-'}</td><td>${o.model_title||'模型#'+(o.model_id||'?')}</td><td>¥${Number(o.amount||0).toFixed(2)}</td><td><select onchange="updateStatus(${o.id},this.value)" style="font-size:0.72rem;padding:2px 6px;border-radius:4px;border:1px solid var(--border);"><option value="completed" ${o.status==='completed'?'selected':''}>已完成</option><option value="processing" ${o.status==='processing'?'selected':''}>处理中</option><option value="refunded" ${o.status==='refunded'?'selected':''}>已退款</option><option value="cancelled" ${o.status==='cancelled'?'selected':''}>已取消</option></select></td><td>${(o.created_at||'').slice(0,16)}</td><td><button onclick="updateStatus(${o.id},'completed')" class="admin-btn" style="font-size:0.65rem;padding:2px 8px;">完成</button></td></tr>`
+    ).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">暂无订单</td></tr>';
+    document.getElementById('page-info').textContent = `共 ${d.total} 条，第 ${d.page} 页`;
+}
+async function updateStatus(id, status) {
+    await fetch(`/api/admin/orders/${id}/status`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status}),credentials:'same-origin'});
+    loadOrders();
+}
+async function doLogout() { await fetch('/api/admin/logout',{method:'POST',credentials:'same-origin'}); location.href='index.html'; }
+loadOrders();
+</script>
 </body>
 </html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主页编辑 - PrintHub Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css?v=7">
+<style>
+.setting-group { margin-bottom:24px; padding:16px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card); }
+.setting-group h3 { margin:0 0 12px; font-size:1rem; }
+.setting-row { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+.setting-row label { font-size:0.72rem; color:var(--text-muted); font-weight:600; }
+.setting-row input, .setting-row textarea { padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-family:inherit; background:var(--bg); color:var(--text); }
+.setting-row textarea { min-height:60px; resize:vertical; }
+</style>
+</head>
+<body class="admin-body">
+<aside class="admin-sidebar">
+    <div class="admin-sidebar-top"><a href="dashboard.html" class="admin-sidebar-logo"><img class="admin-logo-img" src="../assets/logo.png" alt="PrintHub"></a></div>
+    <div class="admin-sidebar-user"><div class="avatar" style="background:linear-gradient(135deg,#1aab5e,#158f4e);">A</div><div class="info"><h4>Admin</h4><p>管理员</p></div></div>
+    <nav class="admin-menu">
+        <a href="dashboard.html" class="admin-menu-item"><span class="icon">📊</span>数据面板</a>
+        <a href="models.html" class="admin-menu-item"><span class="icon">🧸</span>模型管理</a>
+        <a href="orders.html" class="admin-menu-item"><span class="icon">📋</span>订单管理</a>
+        <a href="users.html" class="admin-menu-item"><span class="icon">👤</span>用户管理</a>
+        <a href="settings.html" class="admin-menu-item active"><span class="icon">⚙️</span>主页编辑</a>
+    </nav>
+    <div class="admin-sidebar-bottom"><a href="../index.html"><span>←</span> 返回前台</a><a href="#" onclick="doLogout()"><span>×</span> 退出</a></div>
+</aside>
+<div class="admin-main">
+    <header class="admin-header">
+        <h1>⚙️ 主页内容编辑</h1>
+        <div class="admin-header-actions">
+            <button class="admin-btn primary" onclick="saveAll()">💾 保存全部</button>
+            <a href="../index.html" class="admin-btn" target="_blank">预览前台 →</a>
+        </div>
+    </header>
+    <div class="admin-content">
+        <div class="setting-group">
+            <h3>🏠 首页英雄区</h3>
+            <div class="setting-row"><label>大标题</label><input id="hero_title" placeholder="PrintHub 印模库 - 3D模型交易平台"></div>
+            <div class="setting-row"><label>副标题</label><input id="hero_subtitle" placeholder="10,000+ 精选3D打印模型"></div>
+            <div class="setting-row"><label>描述文字</label><textarea id="hero_desc" placeholder="STL / OBJ / 3MF 格式支持，下载即打印"></textarea></div>
+        </div>
+        <div class="setting-group">
+            <h3>📊 统计数据（首页展示）</h3>
+            <div class="setting-row"><label>模型数量显示</label><input id="stat_models" placeholder="10,000+"></div>
+            <div class="setting-row"><label>用户数量显示</label><input id="stat_users" placeholder="50,000+"></div>
+            <div class="setting-row"><label>成功率显示</label><input id="stat_success" placeholder="98%"></div>
+        </div>
+        <div class="setting-group">
+            <h3>📞 联系信息</h3>
+            <div class="setting-row"><label>联系邮箱</label><input id="contact_email" placeholder="hello@printhub3d.club"></div>
+            <div class="setting-row"><label>微信号</label><input id="contact_wechat" placeholder="PrintHub3D"></div>
+            <div class="setting-row"><label>响应时间</label><input id="contact_response" placeholder="24小时内回复"></div>
+        </div>
+        <div class="setting-group">
+            <h3>🏷️ 首页功能亮点文字</h3>
+            <div class="setting-row"><label>功能1 - 搜索标题</label><input id="feature1_title" placeholder="智能搜索"></div>
+            <div class="setting-row"><label>功能1 - 描述</label><input id="feature1_desc" placeholder="搜索10,000+模型..."></div>
+            <div class="setting-row"><label>功能2 - 标题</label><input id="feature2_title" placeholder="3D预览"></div>
+            <div class="setting-row"><label>功能2 - 描述</label><input id="feature2_desc" placeholder="在线旋转缩放查看..."></div>
+            <div class="setting-row"><label>功能3 - 标题</label><input id="feature3_title" placeholder="灵活定价"></div>
+            <div class="setting-row"><label>功能3 - 描述</label><input id="feature3_desc" placeholder="免费+付费..."></div>
+        </div>
+        <div style="text-align:center;padding:20px;">
+            <button class="admin-btn primary" onclick="saveAll()" style="font-size:1rem;padding:10px 32px;">💾 保存全部设置</button>
+            <p id="save-msg" style="margin-top:8px;font-size:0.78rem;color:var(--green);"></p>
+        </div>
+    </div>
+</div>
+<script>
+const FIELDS = ['hero_title','hero_subtitle','hero_desc','stat_models','stat_users','stat_success','contact_email','contact_wechat','contact_response','feature1_title','feature1_desc','feature2_title','feature2_desc','feature3_title','feature3_desc'];
+
+async function loadSettings() {
+    try {
+        const r = await fetch('/api/admin/settings', {credentials:'same-origin'});
+        const d = await r.json();
+        if (d.ok && d.settings) {
+            FIELDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && d.settings[id]) el.value = d.settings[id];
+            });
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function saveAll() {
+    const data = {};
+    FIELDS.forEach(id => { data[id] = document.getElementById(id).value; });
+    try {
+        const r = await fetch('/api/admin/settings', {
+            method:'POST', credentials:'same-origin',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(data)
+        });
+        const d = await r.json();
+        const msg = document.getElementById('save-msg');
+        if (d.ok) { msg.textContent = '✅ 保存成功！刷新前台页面即可看到修改。'; msg.style.color = 'var(--green)'; }
+        else { msg.textContent = '❌ 保存失败: ' + (d.error||''); msg.style.color = 'var(--danger)'; }
+        setTimeout(() => msg.textContent = '', 4000);
+    } catch(e) { console.error(e); }
+}
+
+async function doLogout() { await fetch('/api/admin/logout',{method:'POST',credentials:'same-origin'}); location.href='index.html'; }
+loadSettings();
+</script>
+</body>
+</html>
