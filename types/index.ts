@@ -1,4 +1,5 @@
 export interface Product {
+  id?: string;
   code: string;
   category: "restaurant" | "party" | "desk";
   price: number;
@@ -12,6 +13,7 @@ export interface Product {
 }
 
 export interface Bundle {
+  id?: string;
   price: number;
   image: string;
   title: Record<Lang, string>;
